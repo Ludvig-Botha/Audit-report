@@ -1,0 +1,1049 @@
+{
+ "shared": [
+  {
+   "section": "Boiler Water Level (report 6.1)",
+   "items": [
+    {
+     "q": "Gauge glass / sight glass condition",
+     "f": "Sight glass not clearly visible / leaking and needs replacement.",
+     "r": "Replace/repair sight glass. The gauge glass should be blown down once per shift to ensure it is working correctly and the standpipes do not become blocked with scale.",
+     "p": "High",
+     "t": "GaugeGlassSight",
+     "d": "check"
+    },
+    {
+     "q": "Gauge glass blown down each shift?",
+     "f": "Gauge glasses are not blown down at the beginning of each shift.",
+     "r": "The gauge glasses should be blown down once per shift to ensure that they are working correctly and that the standpipes do not become blocked with scale.",
+     "p": "Medium",
+     "t": "GaugeGlassBlown",
+     "d": "check"
+    },
+    {
+     "q": "Water level control type & condition",
+     "f": "Water level Mobrey switches badly worn / water level control not ideal with slow response.",
+     "r": "Upgrade the water level control system by installing a Spirax LP21 probe, controller and a VSD for the feedwater pump for modulating control of the water level.",
+     "p": "High",
+     "t": "WaterLevelControl",
+     "d": "check",
+     "opts": [
+      "Mobrey",
+      "Spirax LP20 probe",
+      "Spirax LP21 probe",
+      "K-Tek probe"
+     ]
+    },
+    {
+     "q": "Extra low water cut-out condition & test",
+     "f": "Extra low water Mobrey worn / extra low water lock-out could not be verified.",
+     "r": "Upgrade the extra low water protection by installing a Spirax LP40 probe and extra low water controller. Blow down every shift to check that the boiler trips and locks out at extra low water level.",
+     "p": "High",
+     "t": "ExtraLowWater",
+     "d": "check",
+     "opts": [
+      "Mobrey",
+      "Spirax LP30",
+      "Spirax LP40"
+     ]
+    },
+    {
+     "q": "Level control blowdown pipework",
+     "f": "Mobrey/level control blowdown pipework bent or damaged; blowdown not possible.",
+     "r": "Replace/repair the sight glass and level control blowdown pipework as soon as possible.",
+     "p": "High",
+     "t": "LevelControlBlowdown",
+     "d": "check"
+    },
+    {
+     "q": "Low / extra low / high water alarms (audible + visual)",
+     "f": "Alarms for low and high water levels not correct: no audible low water alarm / no separate extra low alarm / no record kept of alarm tests.",
+     "r": "All alarms, audible and visual, should be recorded. If the water level in the gauge glass is correct and a low water alarm persists, the level controls should be checked; if the level remains low, check the feedwater pumps.",
+     "p": "High",
+     "t": "LowExtraLow",
+     "d": "check"
+    },
+    {
+     "q": "Records of alarm tests available?",
+     "f": "Records of alarm tests could not be provided for review.",
+     "r": "Record all alarm tests in the daily logbook and retain records for review.",
+     "p": "Medium",
+     "t": "RecordsOfAlarm",
+     "d": "check"
+    },
+    {
+     "q": "Feedwater pump condition & automation",
+     "f": "Feedwater pump faulty / cannot keep up with steam demand / no automation of feedwater pumps.",
+     "r": "Urgent attention should be paid to malfunctioning boiler feedwater pumps and to the automation controls of the feedwater pumps.",
+     "p": "High",
+     "t": "FeedwaterPumpCondition",
+     "d": "check"
+    },
+    {
+     "q": "Feedwater pump protection installed?",
+     "f": "No feedwater pump protection is installed on the pumps.",
+     "r": "Install feedwater pump protection to prevent pump damage.",
+     "p": "Medium",
+     "t": "FeedwaterPumpProtection",
+     "d": "check"
+    },
+    {
+     "q": "Feedwater flow meter installed & working",
+     "f": "No feedwater flow meter installed / feedwater meter not working.",
+     "r": "Install a feedwater flow meter (magnetic type recommended) for each boiler to monitor the amount of water used per boiler.",
+     "p": "Medium",
+     "t": "FeedwaterFlowMeter",
+     "d": "check"
+    },
+    {
+     "q": "Cabling to level switches / transmitters secure",
+     "f": "Cabling to feedwater pumps, level switches and/or transmitters is not secure and safe.",
+     "r": "Cabling to feedwater pumps, level switches and/or transmitters should be secured and made safe.",
+     "p": "Medium",
+     "t": "CablingToLevel",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "TDS & Blowdown (report 5.2 per boiler)",
+   "items": [
+    {
+     "q": "Automatic TDS control installed & working",
+     "f": "Boiler does not have automatic TDS control / TDS system not working due to seized valves or faulty controller.",
+     "r": "Automatic TDS controls and water sample coolers need to be installed/upgraded on the boiler. TDS levels must be maintained between 2500-3000 to prevent water carry-over to the process.",
+     "p": "High",
+     "t": "AutomaticTdsControl",
+     "d": "check"
+    },
+    {
+     "q": "TDS reading taken (record value)",
+     "f": "TDS measurement was extremely high, measured above specification with handheld tester.",
+     "r": "Maintain TDS between 2500-3000 by correct blowdown and dosing. Record TDS and pH for each shift in the daily logbook.",
+     "p": "High",
+     "t": "TdsReadingTaken",
+     "d": "check"
+    },
+    {
+     "q": "Sample cooler installed",
+     "f": "No water sample cooler installed on the boiler.",
+     "r": "Install a water sample cooler for safe and accurate boiler water sampling.",
+     "p": "Medium",
+     "t": "SampleCoolerInstalled",
+     "d": "check"
+    },
+    {
+     "q": "Blowdown valve condition & operation",
+     "f": "Boiler blowdown valve leaking / stiff / blowdown pipe blocked.",
+     "r": "Repair/replace the blowdown valve. Blowdown valve flanges must be tight with effortless action.",
+     "p": "High",
+     "t": "BlowdownValveCondition",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Valves & Mountings",
+   "items": [
+    {
+     "q": "Safety valves condition (leaks / test records)",
+     "f": "Steam leak on safety valves / safety valve test records not available.",
+     "r": "Replace or overhaul safety valves with steam leaks. Safety valves to be tested with the AIA inspector and documented.",
+     "p": "High",
+     "t": "SafetyValvesCondition",
+     "d": "check"
+    },
+    {
+     "q": "Main steam (crown) valve",
+     "f": "Steam leak on the crown valve.",
+     "r": "Replace/repair the leaking crown valve as soon as possible.",
+     "p": "High",
+     "t": "MainSteamValve",
+     "d": "check"
+    },
+    {
+     "q": "Feedwater isolating & check valves",
+     "f": "Feedwater valve / check (one-way) valve passing or seized.",
+     "r": "Replace the feedwater isolating and check valves.",
+     "p": "Medium",
+     "t": "FeedwaterIsolatingCheck",
+     "d": "check"
+    },
+    {
+     "q": "Boiler pressure gauge",
+     "f": "Boiler pressure gauge faulty / not calibrated.",
+     "r": "Replace the boiler pressure gauge with a newly calibrated pressure gauge.",
+     "p": "Medium",
+     "t": "BoilerPressureGauge",
+     "d": "check"
+    },
+    {
+     "q": "Pressure control instrumentation & safety pipework",
+     "f": "Copper pipes used for boiler safety instruments; does not comply with BS EN 12953. High pressure lock-out drifting from set calibration.",
+     "r": "Replace copper instrument pipework to comply with BS EN 12953. Replace/recalibrate the high pressure safety lock-out and incorporate the pressure transducer onto the new pipework.",
+     "p": "High",
+     "t": "PressureControlInstrumentation",
+     "d": "check"
+    },
+    {
+     "q": "Air release valve",
+     "f": "Air release valve leaking / seized.",
+     "r": "Repair/replace the air release valve.",
+     "p": "Low",
+     "t": "AirReleaseValve",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Boiler Mechanical & Maintenance (report 5.5)",
+   "items": [
+    {
+     "q": "Fire tubes condition & cleaning interval",
+     "f": "Fire tubes blocked / not cleaned regularly, reducing heat transfer.",
+     "r": "Fire tubes should be cleaned regularly, ideally every three to four months, to maintain optimum heat transfer and boiler efficiency.",
+     "p": "Medium",
+     "t": "FireTubesCondition",
+     "d": "check"
+    },
+    {
+     "q": "Refractory condition",
+     "f": "Refractory is cracked/damaged which leads to loss of heat and efficiency.",
+     "r": "Repair/recast the damaged refractory.",
+     "p": "High",
+     "t": "RefractoryCondition",
+     "d": "check"
+    },
+    {
+     "q": "Smokebox doors, clamps & seals",
+     "f": "Smokebox door clamps/bolts missing; smokebox seals leaking.",
+     "r": "Replace all missing smokebox door clamps/bolts and repair smokebox seals. Smokebox doors must be tight.",
+     "p": "Medium",
+     "t": "SmokeboxDoorsClamps",
+     "d": "check"
+    },
+    {
+     "q": "Exit flue gas temperature gauge",
+     "f": "Exit flue gas temperature gauge not working; monitoring of blocked tubes and combustion efficiency not possible.",
+     "r": "Replace the exit flue gas temperature gauge to monitor fire tube blockage and combustion efficiency.",
+     "p": "Medium",
+     "t": "ExitFlueGas",
+     "d": "check"
+    },
+    {
+     "q": "Boiler instrumentation calibration",
+     "f": "Boiler instrumentation not calibrated.",
+     "r": "Calibrate or replace boiler instrumentation.",
+     "p": "Medium",
+     "t": "BoilerInstrumentationCalibration",
+     "d": "check"
+    },
+    {
+     "q": "Control panel condition",
+     "f": "Control panel switches, buttons and pilot lights damaged or not working; wiring loose with risk of electrocution.",
+     "r": "Upgrade the panel with a new OEM automated control panel with HMI screen (and fan VSDs where applicable) compliant with pressure equipment regulations and EN boiler safety standards.",
+     "p": "High",
+     "t": "ControlPanelCondition",
+     "d": "check"
+    },
+    {
+     "q": "Safety interlocks tested",
+     "f": "Safety interlocks could not be verified / not tested.",
+     "r": "Yearly AIA safety inspections to be done: safety chain lockouts, low water alarm and lock-out, safety valves and E-stop to be tested and documented.",
+     "p": "High",
+     "t": "SafetyInterlocksTested",
+     "d": "check"
+    },
+    {
+     "q": "Statutory / AIA inspection records",
+     "f": "The AIA hot commissioning report for the setting of safety limiters was not provided for review.",
+     "r": "Provide AIA inspection and hot commissioning records. The boiler must be subjected to internal and external inspection annually as required by law.",
+     "p": "Medium",
+     "t": "StatutoryAiaInspection",
+     "d": "check"
+    },
+    {
+     "q": "Maintenance schedules in place",
+     "f": "Weekly or monthly maintenance schedules could not be provided for review.",
+     "r": "Implement daily, weekly and monthly maintenance schedules for the boiler plant, steam distribution and condensate recovery equipment, and record all maintenance.",
+     "p": "Medium",
+     "t": "MaintenanceSchedulesIn",
+     "d": "check"
+    }
+   ]
+  }
+ ],
+ "stoker": [
+  {
+   "section": "Combustion — Stoker (report 6.3)",
+   "items": [
+    {
+     "q": "Fuel analysis records available",
+     "f": "Fuel analysis records were not provided for review.",
+     "r": "Perform a proximate analysis, a mineral ash analysis and ash fusion temperatures at least once per coal delivery. Ensure the volatile content of fuel is within specification.",
+     "p": "Medium",
+     "t": "FuelAnalysisRecords",
+     "d": "check"
+    },
+    {
+     "q": "Combustion quality (red coals off stoker end?)",
+     "f": "Incomplete combustion of fuel was occurring with red coals being discharged off the end of the stoker.",
+     "r": "Set up combustion controls, check undergrate air distribution and grate speed to ensure complete burnout before the end of the grate.",
+     "p": "High",
+     "t": "CombustionQuality",
+     "d": "check"
+    },
+    {
+     "q": "Boiler maintains pressure setpoint?",
+     "f": "The boiler could not maintain the operating pressure setpoint.",
+     "r": "Investigate combustion controls, fuel quality and heating surface fouling; restore automatic control of ID and FD fans.",
+     "p": "High",
+     "t": "BoilerMaintainsPressure",
+     "d": "check"
+    },
+    {
+     "q": "Stoker mat / links / link rods",
+     "f": "The stoker mat shows signs of overheating with damaged links and bent link rods; ends of link rods damaged with drifting rods and missing split pins.",
+     "r": "Replace damaged links and link rods and fit split pins. Use OEM parts only.",
+     "p": "High",
+     "t": "StokerMatLinks",
+     "d": "check"
+    },
+    {
+     "q": "Grate tension",
+     "f": "The stoker mat could not be tensioned due to excessive wear on drive links.",
+     "r": "Replace worn drive links; remove a link from the stoker chain and jack the motor to correct tension.",
+     "p": "High",
+     "t": "GrateTension",
+     "d": "check"
+    },
+    {
+     "q": "Stoker level / frame condition",
+     "f": "The stoker needs to be levelled in the boiler; the stoker frame shows signs of distortion.",
+     "r": "Level the stoker in the boiler and repair/replace the distorted frame sections.",
+     "p": "Medium",
+     "t": "StokerLevelFrame",
+     "d": "check"
+    },
+    {
+     "q": "Guillotine door & castings",
+     "f": "Guillotine doors not level; guillotine castings/refractory damaged; door height not displayed / encoder faulty.",
+     "r": "Repair guillotine doors and castings; replace the guillotine door level indicator/encoder.",
+     "p": "Medium",
+     "t": "GuillotineDoorCastings",
+     "d": "check"
+    },
+    {
+     "q": "Ignition arch condition & seal",
+     "f": "Air leaks found on the ignition arch; ignition arch seal rope damaged.",
+     "r": "Replace ignition arch seal rope and close air leaks to prevent cold air cooling the ignition arch.",
+     "p": "Medium",
+     "t": "IgnitionArchCondition",
+     "d": "check"
+    },
+    {
+     "q": "Draught pipework & furnace pressure control (Photohelic)",
+     "f": "Draught pipework to the ignition arch missing/damaged with no feedback to the Photohelic; no automatic control of ID and FD fans.",
+     "r": "Repair draught pipework; replace the Photohelic with a Yokogawa pressure controller for automatic furnace pressure control.",
+     "p": "High",
+     "t": "DraughtPipeworkFurnace",
+     "d": "check"
+    },
+    {
+     "q": "Swinging chute installed & working",
+     "f": "No swinging chute installed; air leaks from the coal hopper.",
+     "r": "Install a swinging chute between the overhead fuel hopper and the stoker hopper. This also prevents air leaks at the coal hopper.",
+     "p": "Medium",
+     "t": "SwingingChuteInstalled",
+     "d": "check"
+    },
+    {
+     "q": "Coal hopper & shut-off doors",
+     "f": "The stoker hoppers and shut-off doors need replacement; air leaks found on the coal hopper.",
+     "r": "Replace stoker hoppers and shut-off doors; seal air leaks.",
+     "p": "Medium",
+     "t": "CoalHopperShut",
+     "d": "check"
+    },
+    {
+     "q": "Undergrate dampers & actuators",
+     "f": "Undergrate damper actuators not installed / not working.",
+     "r": "Install/repair undergrate damper actuators for correct air distribution along the grate.",
+     "p": "Medium",
+     "t": "UndergrateDampersActuators",
+     "d": "check"
+    },
+    {
+     "q": "Stoker drive (motor, chain, V-belts, cover)",
+     "f": "Stoker motor misaligned, chain loose and slipping, V-belts loose with slippage, no V-belt cover.",
+     "r": "Align the stoker motor, tension the chain, replace and tension V-belts and install a V-belt cover.",
+     "p": "Medium",
+     "t": "StokerDrive",
+     "d": "check"
+    },
+    {
+     "q": "FD fan control",
+     "f": "FD fan actuator missing / damper control poor.",
+     "r": "Install a VSD to control the FD fan speed instead of damper and actuator for better control of air flow.",
+     "p": "Medium",
+     "t": "FdFanControl",
+     "d": "check"
+    },
+    {
+     "q": "ID fan control",
+     "f": "ID damper actuator not working.",
+     "r": "Install a VSD for ID fan speed control. VSDs give finer, more accurate control than actuator-driven dampers.",
+     "p": "Medium",
+     "t": "IdFanControl",
+     "d": "check"
+    },
+    {
+     "q": "O2 probe & analyser",
+     "f": "No O2 probe/analyser installed; monitoring of efficient combustion is not possible.",
+     "r": "Install a Lamtec LT2 O2 analyser per furnace and reduce flue gas oxygen content by adjusting the fuel trim and automating combustion control.",
+     "p": "High",
+     "t": "O2ProbeAnalyser",
+     "d": "check"
+    },
+    {
+     "q": "Temperature probes (ignition arch, rear roller, coal hopper)",
+     "f": "Ignition arch / rear roller / coal hopper temperature probes not installed or broken.",
+     "r": "Install/replace the ignition arch, rear roller and coal hopper temperature probes.",
+     "p": "Medium",
+     "t": "TemperatureProbes",
+     "d": "check"
+    },
+    {
+     "q": "Spy holes & air leaks",
+     "f": "Spy holes and air leaks around the stoker allow cold air in, cooling the ignition arch.",
+     "r": "Close spy holes and air leaks around the stoker to prevent cold air cooling the ignition arch.",
+     "p": "Low",
+     "t": "SpyHolesAir",
+     "d": "check"
+    },
+    {
+     "q": "Moisturising steam to coal",
+     "f": "No moisturising steam introduced into the coal in the stoker hopper.",
+     "r": "Introduce moisturising steam into the coal in the stoker hopper; this assists the fine fuel fraction to adhere and burn properly.",
+     "p": "Low",
+     "t": "MoisturisingSteamTo",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Boiler Equipment — Stoker (report 7)",
+   "items": [
+    {
+     "q": "Grit collector condition",
+     "f": "Grit collector blocked/dirty; internals worn; wedge plates not sealing on the grit trolley causing air ingress.",
+     "r": "Clean out the grit collector, replace the internals and re-align the wedge plates so they seal tightly onto the grit trolley.",
+     "p": "Medium",
+     "t": "GritCollectorCondition",
+     "d": "check"
+    },
+    {
+     "q": "Grit collector DP gauges",
+     "f": "The grit arrestor pressure drop cannot be monitored as differential pressure gauges are not installed.",
+     "r": "Install differential pressure gauges on the grit collectors and boilers to indicate the level of blockage.",
+     "p": "Medium",
+     "t": "GritCollectorDp",
+     "d": "check"
+    },
+    {
+     "q": "Grit / ash trolleys & chute doors",
+     "f": "Grit trolleys, ash chute trolleys and ash chute doors damaged/leaking.",
+     "r": "Repair and replace leaking/damaged ash chute doors, grit collector double flaps and trolleys.",
+     "p": "Medium",
+     "t": "GritAshTrolleys",
+     "d": "check"
+    },
+    {
+     "q": "Sootblowers",
+     "f": "Sootblowers not working.",
+     "r": "Repair sootblowers and operate per the maintenance schedule.",
+     "p": "Medium",
+     "t": "Sootblowers",
+     "d": "check"
+    },
+    {
+     "q": "Emission tests",
+     "f": "Emission test records not available.",
+     "r": "Emission tests to be completed.",
+     "p": "Low",
+     "t": "EmissionTests",
+     "d": "check"
+    }
+   ]
+  }
+ ],
+ "burner": [
+  {
+   "section": "Fuel / HFO Handling — Burner (data entry + condition)",
+   "items": [
+    {
+     "q": "DATA: Required fuel temperature at burner (spec)",
+     "f": "(entry field, deg C)",
+     "r": "(no recommendation - data only)",
+     "p": "-",
+     "t": "RequiredFuelTemperature",
+     "d": "data"
+    },
+    {
+     "q": "DATA: Required fuel pressure at burner (spec)",
+     "f": "(entry field, bar)",
+     "r": "(no recommendation - data only)",
+     "p": "-",
+     "t": "RequiredFuelPressure",
+     "d": "data"
+    },
+    {
+     "q": "DATA: Fuel pump control type (dropdown: VSD / DOL / Ring main / Pressure regulator / Other)",
+     "f": "(entry field)",
+     "r": "(no recommendation - data only)",
+     "p": "-",
+     "t": "FuelPumpControl",
+     "d": "data"
+    },
+    {
+     "q": "MEASURED: Actual fuel temperature at burner",
+     "f": "Actual fuel temperature measured at ___ deg C, outside the required specification, negatively affecting atomisation and combustion.",
+     "r": "Repair/replace fuel heaters and heat tracing and restore the fuel temperature to specification for proper atomisation.",
+     "p": "High",
+     "t": "ActualFuelTemperature",
+     "d": "measured"
+    },
+    {
+     "q": "MEASURED: Actual fuel pressure at burner",
+     "f": "Actual fuel pressure measured at ___ bar, outside the required specification, negatively affecting combustion stability.",
+     "r": "Restore the fuel supply pressure to specification. Install/set a separate pressure regulator for the burner and keep the ring main at constant pressure.",
+     "p": "High",
+     "t": "ActualFuelPressure",
+     "d": "measured"
+    },
+    {
+     "q": "Fuel pump condition",
+     "f": "Fuel pump worn/leaking and requires attention.",
+     "r": "Service or replace the fuel pump.",
+     "p": "High",
+     "t": "FuelPumpCondition",
+     "d": "check"
+    },
+    {
+     "q": "Fuel pump VSD / motor control condition",
+     "f": "Fuel pump VSD/motor control faulty or not in use; pump running uncontrolled.",
+     "r": "Repair or replace the VSD/motor control for stable fuel supply pressure and efficient pump operation.",
+     "p": "Medium",
+     "t": "FuelPumpVsd",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Combustion — Burner (report 6.3 / 7.3)",
+   "items": [
+    {
+     "q": "Burner service records",
+     "f": "Records of the last burner service were not provided.",
+     "r": "Maintain records of burner services and work done. A bi-annual burner service is recommended to run burners at optimal efficiency.",
+     "p": "Medium",
+     "t": "BurnerServiceRecords",
+     "d": "check"
+    },
+    {
+     "q": "Fuel/oil leaks at burner",
+     "f": "Leaking of HFO was observed at the burner / oil leaking into the cup on standby due to worn internal seals of the fuel block.",
+     "r": "Overhaul the burner fuel block with a full service kit and seal all oil leaks on burners and oil lines to prevent energy loss, safety hazards and contamination.",
+     "p": "High",
+     "t": "FuelOilLeaks",
+     "d": "check"
+    },
+    {
+     "q": "Atomiser cup condition & cleaning routine",
+     "f": "Burner cup not properly cleaned as needed (every start of shift).",
+     "r": "Clean the atomiser cup at the start of every shift and include it in the operator duties.",
+     "p": "Medium",
+     "t": "AtomiserCupCondition",
+     "d": "check"
+    },
+    {
+     "q": "Atomiser V-belt (tension, alignment, wear)",
+     "f": "Atomiser belt comes off at start-up: belt tension too high and motor/atomiser pulleys misaligned.",
+     "r": "Align motor and atomiser pulleys, set correct belt tension and keep a spare belt on site. Replace the belt if worn.",
+     "p": "Medium",
+     "t": "AtomiserVBelt",
+     "d": "check"
+    },
+    {
+     "q": "Burner quarl / refractory",
+     "f": "Burner quarl/refractory cracked or worn.",
+     "r": "Replace burner quarl/refractory at the next service (refractory bricks and cement available from John Thompson).",
+     "p": "High",
+     "t": "BurnerQuarlRefractory",
+     "d": "check"
+    },
+    {
+     "q": "Burner vanes, swirler & ducting",
+     "f": "Burner head air cone worn / vanes and ducting fouled.",
+     "r": "Clean and inspect burner vanes, swirler cup and ducting; replace worn components.",
+     "p": "Medium",
+     "t": "BurnerVanesSwirler",
+     "d": "check"
+    },
+    {
+     "q": "Primary air ducting & air leaks",
+     "f": "Primary air ducting leaking (temporarily sealed with tape); air leaks on ducting and smoke doors.",
+     "r": "Repair all air leaks on ducting and smokebox doors to maintain proper combustion air control; replace ducting where required.",
+     "p": "Medium",
+     "t": "PrimaryAirDucting",
+     "d": "check"
+    },
+    {
+     "q": "Air damper linkages & actuators",
+     "f": "Primary/secondary air damper linkages loose or movement restricted.",
+     "r": "Tighten and free up damper linkages so movement is clear and unrestricted; check actuator calibration.",
+     "p": "Medium",
+     "t": "AirDamperLinkages",
+     "d": "check"
+    },
+    {
+     "q": "Ignition assembly (transformer, probe, cable, pilot)",
+     "f": "Ignition assembly damaged; gas pipe nozzle broken and temporarily repaired.",
+     "r": "Replace the damaged ignition components; reroute cabling to minimise damage and wear.",
+     "p": "High",
+     "t": "IgnitionAssembly",
+     "d": "check"
+    },
+    {
+     "q": "Flame scanner & controller",
+     "f": "Flame scanner failing / not detecting flame at low fire due to fuel quality, causing lockouts.",
+     "r": "Clean/replace the flame scanner, tidy and reroute cabling, and address fuel quality to ensure reliable flame detection at low fire.",
+     "p": "High",
+     "t": "FlameScannerController",
+     "d": "check"
+    },
+    {
+     "q": "Heat tracing on oil lines",
+     "f": "Heat tracing on burner oil lines damaged and not working.",
+     "r": "Replace the heat tracing on the burner and ring main oil lines and insulate the oil lines properly.",
+     "p": "Medium",
+     "t": "HeatTracingOn",
+     "d": "check"
+    },
+    {
+     "q": "Minimum air pressure switch",
+     "f": "Minimum air pressure switch faulty / airline blocked.",
+     "r": "Replace the minimum air pressure switch and clean/reroute the airline. Burner ignition must be prevented when air pressure is not present.",
+     "p": "High",
+     "t": "MinimumAirPressure",
+     "d": "check"
+    },
+    {
+     "q": "Primary air differential pressure switch",
+     "f": "Primary air differential switch faulty / airlines blocked or damaged.",
+     "r": "Replace the differential air pressure switch; the burner must lock out if the primary air chamber differential is not balanced at ignition.",
+     "p": "High",
+     "t": "PrimaryAirDifferential",
+     "d": "check"
+    },
+    {
+     "q": "Burner door hinge limit switch",
+     "f": "Door hinge limit switch damaged; burner does not lock out when the door is opened.",
+     "r": "Replace the door open limit switch so the burner locks out when the door is opened.",
+     "p": "High",
+     "t": "BurnerDoorHinge",
+     "d": "check"
+    },
+    {
+     "q": "Ring main pressure stability",
+     "f": "The ring main does not maintain constant pressure, negatively impacting combustion stability and burner efficiency.",
+     "r": "Resolve oil pressure fluctuations in the ring main. Install a separate pressure regulator for the burner and keep the ring main at a constant pressure so operators need not adjust supply pressure when switching between boilers.",
+     "p": "High",
+     "t": "RingMainPressure",
+     "d": "check"
+    },
+    {
+     "q": "O2 analyser & reference air pump",
+     "f": "No O2 analyser installed / reference air pump and filter defective, affecting accuracy of oxygen readings.",
+     "r": "Install/replace the O2 analyser with a Lamtec LT2 KS1D-HT probe and control panel for improved combustion monitoring and control.",
+     "p": "High",
+     "t": "O2AnalyserReference",
+     "d": "check"
+    },
+    {
+     "q": "Combustion test (O2 across load range)",
+     "f": "Flue gas oxygen content outside the optimal range.",
+     "r": "Reduce the flue gas oxygen content to between 3% and 6% by adjusting the fuel/air ratio. Yearly combustion set-ups should be done for optimal combustion efficiency.",
+     "p": "Medium",
+     "t": "CombustionTest",
+     "d": "check"
+    },
+    {
+     "q": "Fuel flow meter",
+     "f": "No fuel flow meter installed / HFO flow meter not working; fuel consumption not recorded.",
+     "r": "Install/replace the fuel flow meter to monitor and record fuel consumption.",
+     "p": "Medium",
+     "t": "FuelFlowMeter",
+     "d": "check"
+    }
+   ]
+  }
+ ],
+ "biomass": [
+  {
+   "section": "Fuel Handling & Feeding — Biomass",
+   "items": [
+    {
+     "q": "Fuel storage / bunker condition & housekeeping",
+     "f": "Fuel storage area untidy and fuel exposed to rain, increasing the moisture content of the fuel.",
+     "r": "Store biomass fuel under cover and keep the storage area clean to control moisture content and fire risk.",
+     "p": "Medium",
+     "t": "FuelStorageBunkerCon",
+     "d": "check"
+    },
+    {
+     "q": "Fuel moisture & quality as fired",
+     "f": "Fuel moisture content is high and the fuel contains contaminants (sand, stones, metal), reducing combustion efficiency and damaging the grate.",
+     "r": "Control fuel moisture (typically below 30-35% for grate firing) and screen out contaminants. Record fuel moisture daily.",
+     "p": "High",
+     "t": "FuelMoistureQualityA",
+     "d": "check"
+    },
+    {
+     "q": "Fuel feeding system (screw / ram / conveyor)",
+     "f": "Fuel feeding system worn, blocking or feeding irregularly.",
+     "r": "Repair the fuel feeding system and set up feed-rate control linked to steam demand.",
+     "p": "High",
+     "t": "FuelFeedingSystem",
+     "d": "check"
+    },
+    {
+     "q": "Metering bin / fuel level control",
+     "f": "Fuel level control in the metering bin is not working; fuel supply to the furnace is irregular.",
+     "r": "Repair the metering bin level sensors and feed control.",
+     "p": "Medium",
+     "t": "MeteringBinFuelLevel",
+     "d": "check"
+    },
+    {
+     "q": "Burn-back / fire protection on fuel feed",
+     "f": "Burn-back protection not working or not installed, posing a fire risk in the fuel feed system.",
+     "r": "Install or repair burn-back protection (rotary valve or double flap, feed chute temperature sensor and water quench) and test it regularly.",
+     "p": "High",
+     "t": "BurnBackFireProtecti",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Combustion — Biomass",
+   "items": [
+    {
+     "q": "Grate type & condition (moving / reciprocating / fixed)",
+     "f": "Grate bars worn, warped or missing, causing an uneven fuel bed and poor air distribution.",
+     "r": "Replace worn or damaged grate bars and restore correct grate movement and speed settings.",
+     "p": "High",
+     "t": "GrateTypeCondition",
+     "d": "check"
+    },
+    {
+     "q": "Clinker / slag formation on grate",
+     "f": "Clinker formation on the grate is restricting combustion air.",
+     "r": "Remove clinker; check the fuel ash content and furnace temperatures and adjust primary air and grate speed to prevent clinker forming.",
+     "p": "Medium",
+     "t": "ClinkerSlagFormation",
+     "d": "check"
+    },
+    {
+     "q": "Primary & secondary air distribution / dampers",
+     "f": "Primary and secondary air dampers are not working or not controlled, resulting in incomplete combustion.",
+     "r": "Repair the dampers and actuators and set up primary/secondary air distribution for complete combustion.",
+     "p": "High",
+     "t": "PrimarySecondaryAirD",
+     "d": "check"
+    },
+    {
+     "q": "Furnace refractory & ignition arch",
+     "f": "Furnace refractory is cracked or damaged.",
+     "r": "Repair the damaged refractory.",
+     "p": "High",
+     "t": "FurnaceRefractoryIgn",
+     "d": "check"
+    },
+    {
+     "q": "Furnace pressure control",
+     "f": "Furnace pressure is not controlled, with a risk of smoke and flame blow-back.",
+     "r": "Repair the furnace pressure transmitter and ID fan control to maintain a slight negative furnace pressure.",
+     "p": "High",
+     "t": "FurnacePressureContr",
+     "d": "check"
+    },
+    {
+     "q": "FD / ID fans & VSDs",
+     "f": "FD/ID fans are controlled by dampers only or the VSDs are faulty.",
+     "r": "Install or repair VSDs on the FD and ID fans for accurate combustion air control.",
+     "p": "Medium",
+     "t": "FdIdFansVsds",
+     "d": "check"
+    },
+    {
+     "q": "O2 analyser & combustion setting",
+     "f": "No O2 analyser installed; combustion efficiency cannot be monitored.",
+     "r": "Install an O2 analyser and set combustion for the fuel fired (typically 6-8% O2 for biomass).",
+     "p": "High",
+     "t": "O2AnalyserCombustion",
+     "d": "check"
+    },
+    {
+     "q": "Unburnt fuel in ash",
+     "f": "High unburnt fuel in the ash, indicating incomplete combustion.",
+     "r": "Adjust grate speed, fuel bed depth and air distribution to reduce unburnt fuel in the ash.",
+     "p": "Medium",
+     "t": "UnburntFuelInAsh",
+     "d": "check"
+    },
+    {
+     "q": "Furnace temperature probes",
+     "f": "Furnace temperature probes not installed or faulty.",
+     "r": "Install or replace the furnace temperature probes.",
+     "p": "Medium",
+     "t": "FurnaceTemperaturePr",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Ash Handling & Emissions — Biomass",
+   "items": [
+    {
+     "q": "Ash removal system (screw / conveyor / wet ash)",
+     "f": "Ash removal system blocked, worn or leaking.",
+     "r": "Repair the ash removal system and schedule regular cleaning.",
+     "p": "Medium",
+     "t": "AshRemovalSystem",
+     "d": "check"
+    },
+    {
+     "q": "Grit arrestor / multi-cyclone",
+     "f": "Grit arrestor / multi-cyclone blocked or worn and the differential pressure is not monitored.",
+     "r": "Clean the grit arrestor / multi-cyclone, replace worn internals and install differential pressure gauges.",
+     "p": "Medium",
+     "t": "GritArrestorMultiCyc",
+     "d": "check"
+    },
+    {
+     "q": "Spark arrestor / fire risk in flue path",
+     "f": "No spark arrestor; sparks are carried over into the flue path.",
+     "r": "Install a spark arrestor upstream of any filter equipment to prevent fires.",
+     "p": "High",
+     "t": "SparkArrestorFireRis",
+     "d": "check"
+    },
+    {
+     "q": "Visible stack emissions",
+     "f": "Visible smoke at the stack, indicating incomplete combustion.",
+     "r": "Adjust combustion settings and complete emission testing.",
+     "p": "Medium",
+     "t": "VisibleStackEmission",
+     "d": "check"
+    },
+    {
+     "q": "Sootblowers / heating surface cleaning",
+     "f": "Heating surfaces fouled and sootblowers not working.",
+     "r": "Repair the sootblowers and clean the heating surfaces regularly.",
+     "p": "Medium",
+     "t": "SootblowersHeatingSu",
+     "d": "check"
+    }
+   ]
+  }
+ ],
+ "site": [
+  {
+   "section": "Steam System Profiling (report 4)",
+   "items": [
+    {
+     "q": "Steam distribution & operating pressures",
+     "f": "Operating pressure and distribution issues noted (describe).",
+     "r": "Review steam system operating pressures and distribution; install shut-off valves on the main steam manifold where missing.",
+     "p": "Medium",
+     "t": "SteamDistributionOperating",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Steam Traps (report 5.1)",
+   "items": [
+    {
+     "q": "Steam traps installed & trap set composition",
+     "f": "The steam trap sets consist of only an isolation valve before the steam trap.",
+     "r": "Each trap set should consist of: two isolation valves (one on either side), strainer before the trap, steam trap, sight glass and check valve.",
+     "p": "Medium",
+     "t": "SteamTrapsInstalled",
+     "d": "check"
+    },
+    {
+     "q": "Traps passing steam?",
+     "f": "Most steam traps are functional but some are passing steam, seen from the feedwater storage tank overfilling and steam flow from the tank vent.",
+     "r": "Carry out an in-house audit to determine whether the correct traps are selected and sized; replace damaged traps; set up and maintain a steam trap database; test traps at least once a year and record all maintenance.",
+     "p": "High",
+     "t": "TrapsPassingSteam",
+     "d": "check"
+    },
+    {
+     "q": "Condensate return pipework lagged?",
+     "f": "Condensate return pipework unlagged on some return lines.",
+     "r": "All condensate return pipework should be lagged and clad and returned to the feedwater storage tank. Install bypass valves to allow contaminated condensate to be dumped.",
+     "p": "Medium",
+     "t": "CondensateReturnPipework",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Water Treatment Plant (report 5.2 site)",
+   "items": [
+    {
+     "q": "Water softener working?",
+     "f": "Make-up water is not being softened as the unit is not working.",
+     "r": "Repair, replace or have your local supplier investigate the water softener units and chemical dosing. Customer to supply service report.",
+     "p": "High",
+     "t": "WaterSoftenerWorking",
+     "d": "check"
+    },
+    {
+     "q": "Chemical dosing system",
+     "f": "Chemical dosing pumps installed but chemicals are not being introduced into the feedwater storage tank.",
+     "r": "Restore chemical dosing. Regular inspection of the chemical drums is required and must be noted in the operator's logbook to prevent the boiler being operated without the required chemicals.",
+     "p": "High",
+     "t": "ChemicalDosingSystem",
+     "d": "check"
+    },
+    {
+     "q": "Water treatment specialist visits & reports",
+     "f": "Water treatment service reports need to be supplied for review.",
+     "r": "A local water treatment specialist must make regular visits to ensure operators and laboratory technicians maintain correct chemical dosing and boiler blowdown.",
+     "p": "Medium",
+     "t": "WaterTreatmentSpecialist",
+     "d": "check"
+    },
+    {
+     "q": "TDS / pH recording practice",
+     "f": "TDS and pH are not measured and recorded daily.",
+     "r": "TDS and pH levels must be recorded for each shift in the daily logbook.",
+     "p": "Medium",
+     "t": "TdsPhRecording",
+     "d": "check"
+    },
+    {
+     "q": "Chemical spillage / housekeeping",
+     "f": "Chemical spillage present on feedwater storage tank and pipework.",
+     "r": "Clean chemical spillage and repair the source; protect the tank and pipework from corrosion.",
+     "p": "Low",
+     "t": "ChemicalSpillageHousekeeping",
+     "d": "check"
+    },
+    {
+     "q": "Feedwater tank & hotwell condition",
+     "f": "Hotwell tank and pipework leaking and heavily rusted / feedwater temperature too high due to condensate return.",
+     "r": "Repair/replace the hotwell tank and pipework; manage feedwater temperature to protect the feedwater pumps.",
+     "p": "Medium",
+     "t": "FeedwaterTankHotwell",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Insulation (report 5.3)",
+   "items": [
+    {
+     "q": "Steam pipework lagging (boiler house)",
+     "f": "Steam pipework inside the boiler house is damaged or missing lagging.",
+     "r": "Repair all damaged lagging and cladding; lag all unlagged pipework inside the boiler house and the steam pipework to each process.",
+     "p": "Medium",
+     "t": "SteamPipeworkLagging",
+     "d": "check"
+    },
+    {
+     "q": "Valves & flanges lagged?",
+     "f": "Valves and flanges inside the boiler house are unlagged.",
+     "r": "Lag all valves and flanges inside the boiler house and between the boiler house and process plants.",
+     "p": "Medium",
+     "t": "ValvesFlangesLagged",
+     "d": "check"
+    },
+    {
+     "q": "Feedwater tank & lines lagged?",
+     "f": "Feedwater storage tank lagging shows spillage and wear; no cladding on feedwater lines.",
+     "r": "Lag the feedwater tank and feedwater lines to the boiler.",
+     "p": "Low",
+     "t": "FeedwaterTankLines",
+     "d": "check"
+    },
+    {
+     "q": "Condensate return lines lagged?",
+     "f": "Condensate return pipework is unlagged on some return lines.",
+     "r": "Lag the condensate return pipework.",
+     "p": "Low",
+     "t": "CondensateReturnLines",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Steam Leaks (report 5.4 site)",
+   "items": [
+    {
+     "q": "Steam/water leaks in boiler house & distribution",
+     "f": "The following steam leaks were noted: (list locations).",
+     "r": "Replace and repair leaking valves and components as soon as steam and water leaks occur; repair pipework with steam leaks.",
+     "p": "High",
+     "t": "SteamWaterLeaks",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Condensate Recovery (report 6.2)",
+   "items": [
+    {
+     "q": "Condensate return percentage / system state",
+     "f": "There is 0% condensate return - a significant loss due to wasted water and heat not returned to the feedwater storage tank.",
+     "r": "Automate and repair the condensate return system; check all steam traps to ensure they are not passing steam; install a meter for monitoring condensate return/loss to calculate the cost of steam production.",
+     "p": "High",
+     "t": "CondensateReturnPercentage",
+     "d": "check"
+    }
+   ]
+  },
+  {
+   "section": "Operator Duties (report 6.4 / 7.4)",
+   "items": [
+    {
+     "q": "Logbook: 4-hourly recordings done?",
+     "f": "Operators do not record the required 4-hourly readings.",
+     "r": "Record every 4 hours: boiler water TDS and pH; blowdown; feedwater TDS, pH, hardness, pressure and tank level; softener online; bags of salt added; brine tank level; stack smoke appearance; flue gas exit temperature.",
+     "p": "Medium",
+     "t": "Logbook4Hourly",
+     "d": "check"
+    },
+    {
+     "q": "Shift checks (blowdowns, alarms)",
+     "f": "Shift blowdown checks of gauge glass and level controls not performed.",
+     "r": "Blow down every shift to check the boiler trips and locks out at extra low water level; ensure operators measure and record all required readings.",
+     "p": "Medium",
+     "t": "ShiftChecks",
+     "d": "check"
+    },
+    {
+     "q": "Operator training",
+     "f": "Operators not adequately trained on the equipment.",
+     "r": "Operators must be trained to safely operate the equipment.",
+     "p": "Medium",
+     "t": "OperatorTraining",
+     "d": "check"
+    }
+   ]
+  }
+ ]
+}

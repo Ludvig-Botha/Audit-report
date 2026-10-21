@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#1F4E79">
+<title>JT Boiler Audit</title>
+<style>
+:root{--jt:#1F4E79;--bg:#f4f6f9;--card:#fff;--line:#d8dee7;--ok:#2e7d32;--bad:#c62828;--na:#757575;--amber:#ef6c00}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#222;padding-bottom:96px}
+header{position:sticky;top:0;z-index:5;background:var(--jt);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px}
+header .back{font-size:22px;border:none;background:none;color:#fff;padding:4px 8px}
+header h1{font-size:17px;margin:0;flex:1;line-height:1.2}
+.wrap{padding:12px;max-width:720px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:15px;color:var(--jt)}
+.card.tap{cursor:pointer}
+label{display:block;font-size:13px;color:#444;margin:10px 0 4px}
+input[type=text],input[type=email],input[type=number],input[type=date],textarea,select{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;font-size:15px;background:#fff;font-family:inherit}
+textarea{min-height:74px}
+.btn{display:inline-block;border:none;border-radius:8px;padding:12px 16px;font-size:15px;background:var(--jt);color:#fff;margin:6px 6px 0 0;font-family:inherit}
+.btn.sec{background:#e6ebf2;color:var(--jt)}
+.btn.warn{background:var(--bad)}
+.btn.ok{background:var(--ok)}
+.btn.small{padding:8px 12px;font-size:13px}
+.btn.wide{width:100%;margin:8px 0 0}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.list-item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.list-item .grow{flex:1;min-width:0}
+.list-item .title{font-weight:bold;font-size:15px}
+.list-item .sub{font-size:12.5px;color:#666;margin-top:3px}
+.list-item.extra{border-left:4px solid var(--amber)}
+.list-item.fuel{border-left:4px solid var(--jt)}
+.badge{font-size:11px;padding:3px 8px;border-radius:10px;background:#e6ebf2;color:var(--jt);white-space:nowrap}
+.badge.done{background:#e2f2e3;color:var(--ok)}
+.badge.part{background:#fdeedd;color:var(--amber)}
+.mark-ok{color:var(--ok);font-size:20px}.mark-no{color:var(--bad);font-size:20px}
+.seg{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.seg button{flex:1;min-width:64px;padding:11px 4px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:14px;font-family:inherit}
+.seg button.on-ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.seg button.on-def{background:var(--bad);color:#fff;border-color:var(--bad)}
+.seg button.on-na{background:var(--na);color:#fff;border-color:var(--na)}
+.seg button.on-skip{background:#455a64;color:#fff;border-color:#455a64}
+.prio{display:flex;gap:6px;margin-top:6px}
+.prio button{flex:1;padding:9px 4px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:13px;font-family:inherit}
+.prio button.on-H{background:var(--bad);color:#fff;border-color:var(--bad)}
+.prio button.on-M{background:var(--amber);color:#fff;border-color:var(--amber)}
+.prio button.on-L{background:#607d8b;color:#fff;border-color:#607d8b}
+.prio button.on-N{background:var(--na);color:#fff;border-color:var(--na)}
+.panel{border-top:1px dashed var(--line);margin-top:10px;padding-top:4px}
+.addc{margin-top:10px;border:1px dashed var(--jt);background:#f3f7fc;color:var(--jt);border-radius:8px;padding:10px;width:100%;font-size:14px;font-family:inherit}
+.photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.ph{width:104px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.ph img{width:104px;height:80px;object-fit:cover;display:block}
+.ph .cap{width:100%;border:none;border-top:1px solid var(--line);font-size:11px;padding:5px}
+.ph .inc{display:flex;align-items:center;font-size:11px;padding:4px 5px;gap:4px;border-top:1px solid var(--line)}
+.ph .del{width:100%;border:none;background:#fbe9e7;color:var(--bad);font-size:11px;padding:5px}
+.hint{font-size:12px;color:#777;margin-top:6px}
+.progress{height:6px;background:#e0e6ee;border-radius:3px;margin-top:8px;overflow:hidden}
+.progress div{height:100%;background:var(--jt)}
+.footer-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;padding:8px;gap:8px;z-index:5}
+.footer-nav .btn{flex:1;margin:0;text-align:center}
+.qnum{font-size:12px;color:#888}
+h3.q{font-size:16px;margin:4px 0 2px}
+.suggest{background:#eef3f9;border:1px dashed #b7c6da;border-radius:8px;padding:10px;font-size:13px;margin-top:8px}
+.suggest .use{color:var(--jt);font-weight:bold;border:none;background:none;padding:6px 0 0;font-size:13px;font-family:inherit}
+.center{text-align:center}
+.big{font-size:17px;padding:16px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#e6ebf2;color:var(--jt);border-radius:16px;padding:6px 10px;margin:4px 4px 0 0;font-size:13px}
+.chip button{border:none;background:none;color:var(--bad);font-size:14px;padding:0}
+.genbox{background:#fff;border:2px solid var(--jt);border-radius:12px;padding:16px;margin-bottom:12px}
+.status{font-size:14px;margin-top:10px;color:var(--jt);min-height:20px}
+.warnbox{background:#fff4e5;border:1px solid #f5c58a;border-radius:8px;padding:10px;font-size:13px;margin-top:8px}
+.dist{display:flex;gap:6px;margin-top:6px}
+.dist input{flex:1}
+</style>
+</head>
+<body>
+<header><button class="back" id="backBtn" style="display:none">&#8592;</button><h1 id="hTitle">JT Boiler Audit</h1></header>
+<div class="wrap" id="view"></div>
+<div class="footer-nav" id="fnav" style="display:none"></div>
+
+<script>
+"use strict";
+const APP_VER = /*VER*/;
+const QDB = /*QDB*/;
+const BP = /*BP*/;
+const TPL = /*TPL*/;
+
+/* =====================================================================
+   STORAGE (IndexedDB) — same database as earlier versions, so existing
+   reports and the edited question library carry over.
+   ===================================================================== */
+let db;
+function idb(){ return new Promise((res,rej)=>{
+  const r = indexedDB.open("jt_audit",2);
+  r.onupgradeneeded = e=>{ const d=e.target.result;
+    if(!d.objectStoreNames.contains("jobs")) d.createObjectStore("jobs",{keyPath:"id"});
+    if(!d.objectStoreNames.contains("photos")){ const p=d.createObjectStore("photos",{keyPath:"id"}); p.createIndex("job","jobId"); }
+    if(!d.objectStoreNames.contains("kv")) d.createObjectStore("kv",{keyPath:"k"});
+  };
+  r.onsuccess=e=>{db=e.target.result;res();}; r.onerror=e=>rej(e.target.error||e);
+});}
+const tx=(s,m)=>db.transaction(s,m).objectStore(s);
+const put=(s,v)=>new Promise((res,rej)=>{const r=tx(s,"readwrite").put(v);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});
+const del=(s,k)=>new Promise((res,rej)=>{const r=tx(s,"readwrite").delete(k);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});
+const get=(s,k)=>new Promise((res,rej)=>{const r=tx(s,"readonly").get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+const all=(s)=>new Promise((res,rej)=>{const r=tx(s,"readonly").getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+const photosOf=(jobId)=>new Promise((res,rej)=>{const r=tx("photos","readonly").index("job").getAll(jobId);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+async function kvGet(k,dflt){ const r=await get("kv",k); return r?r.v:dflt; }
+const kvPut=(k,v)=>put("kv",{k,v});
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function yymmdd(){ const d=new Date(); return String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0"); }
+const clean=s=>(s||"").replace(/[^A-Za-z0-9]+/g,"").slice(0,20)||"X";
+const tagOf=s=>(s||"").replace(/\(.*?\)/g,"").split(/[^A-Za-z0-9]+/).filter(Boolean).map(w=>w[0].toUpperCase()+w.slice(1).toLowerCase()).join("").slice(0,20)||"Item";
+function fmtDate(iso){ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||""); return m?`${m[3]}/${m[2]}/${m[1]}`:(iso||""); }
+const mark=done=>done?'<span class="mark-ok">&#10004;</span>':'<span class="mark-no">&#10008;</span>';
+
+const FIRING={
+  stoker:{label:"Coal fired (chain grate stoker)",short:"Coal / stoker",fuel:"coal",part:"stoker"},
+  burner:{label:"Oil / gas fired (burner)",short:"Oil / gas burner",fuel:"oil",part:"burner"},
+  biomass:{label:"Biomass fired",short:"Biomass",fuel:"biomass",part:"biomass"}};
+const firingOf=b=>FIRING[b.firing]||FIRING.burner;
+
+const FUEL_FIELDS={
+  coal:[["supplier","Supplier / mine"],["cv","Calorific value (MJ/kg)"],["moisture","Total moisture (%)"],["ash","Ash content (%)"],["volatile","Volatile matter (%)"],["fixedCarbon","Fixed carbon (%)"],["sulphur","Sulphur (%)"],["aft","Ash fusion temperature (°C)"],["size","Size grading"]],
+  oil:[["supplier","Supplier"],["cv","Calorific value (MJ/kg)"],["density","Density (kg/m³)"],["viscosity","Viscosity (cSt @ °C)"],["sulphur","Sulphur (%)"],["flash","Flash point (°C)"],["water","Water content (%)"],["supplyTemp","Supply temperature at burner (°C)"]],
+  biomass:[["supplier","Supplier / source"],["cv","Calorific value (MJ/kg)"],["moisture","Moisture content (%)"],["ash","Ash content (%)"],["size","Particle size / grading"],["bulk","Bulk density (kg/m³)"],["contaminants","Contaminants (sand, stones, metal)"]]};
+const FUEL_COMMON_END=[["analysis","Fuel analysis report available"],["analysisDate","Date of last fuel analysis"],["notes","Notes"]];
+const FUEL_PHOTOS=[["FuelSample","Fuel sample"],["FuelAnalysis","Fuel analysis report"],["FuelStorage","Fuel storage & handling"]];
+const FUEL_CAT_LABEL={coal:"Coal",oil:"Oil / gas",biomass:"Biomass"};
+
+/* =====================================================================
+   QUESTION LIBRARY + SAVED LISTS + SETTINGS
+   ===================================================================== */
+let LIB=null, LISTS=null, SETTINGS=null;
+const PARTS=[["shared","Shared (all boilers)"],["stoker","Coal / stoker"],["burner","Oil / gas burner"],["biomass","Biomass"],["site","Site-wide"]];
+function seedPart(part){ return (QDB[part]||[]).map((s,si)=>({id:`b_${part}_${si}`,section:s.section,
+  items:s.items.map((it,qi)=>Object.assign({},it,{id:`b_${part}_${si}_${qi}`}))})); }
+function seedLib(){ const L={}; PARTS.forEach(([p])=>L[p]=seedPart(p)); L._v=5; return L; }
+async function loadLib(){
+  const v=await kvGet("lib",null);
+  if(!v){ LIB=seedLib(); await saveLib(); return; }
+  LIB=v; let changed=false;
+  PARTS.forEach(([p])=>{ if(!LIB[p]){ LIB[p]=seedPart(p); changed=true; } });
+  if(!LIB._v||LIB._v<5){ // fuel type is now on the Fuel form, not a burner question
+    LIB.burner.forEach(s=>{ const n=s.items.length; s.items=s.items.filter(it=>!/^DATA: Fuel type used/.test(it.q)); if(s.items.length!==n) changed=true; });
+    LIB._v=5; changed=true; }
+  if(changed) await saveLib();
+}
+function saveLib(){ return kvPut("lib",LIB); }
+const DEFAULT_LISTS={
+  fuel:{coal:["Grade A Peas","Grade B Peas","Grade C Smalls"],
+        oil:["HFO","RFO","LFO","Diesel","Paraffin","LPG","Natural gas"],
+        biomass:["Wood chips","Bagasse","Sawdust","Macadamia nut shells","Rice husk","Wood pellets"]},
+  extras:{"Economiser":["Economiser tubes / fins condition","Water inlet / outlet temperature","Flue gas inlet / outlet temperature","Cleaning / soot blowing","Bypass damper operation","Leaks"],
+          "Bag filter":["Filter bags condition","Differential pressure across bags","Pulse-jet cleaning / compressed air supply","Hopper, rotary valve & dust discharge","High temperature protection / bypass","Visible emissions at stack"]}};
+async function loadLists(){ LISTS=await kvGet("lists",null);
+  if(!LISTS){ LISTS=JSON.parse(JSON.stringify(DEFAULT_LISTS)); await kvPut("lists",LISTS); }
+  LISTS.fuel=LISTS.fuel||{}; ["coal","oil","biomass"].forEach(c=>LISTS.fuel[c]=LISTS.fuel[c]||[]); LISTS.extras=LISTS.extras||{}; }
+const saveLists=()=>kvPut("lists",LISTS);
+function rememberFuel(cat,name){ name=(name||"").trim(); if(!name)return; const l=LISTS.fuel[cat];
+  if(!l.some(x=>x.toLowerCase()===name.toLowerCase())){ l.push(name); saveLists(); } }
+function rememberExtra(name,title){ name=(name||"").trim(); if(!name)return; const key=Object.keys(LISTS.extras).find(k=>k.toLowerCase()===name.toLowerCase())||name;
+  LISTS.extras[key]=LISTS.extras[key]||[]; if(title&&!LISTS.extras[key].some(t=>t.toLowerCase()===title.toLowerCase())) LISTS.extras[key].push(title); saveLists(); }
+async function loadSettings(){ SETTINGS=await kvGet("settings",{name:"",title:"Service Engineer",email:"",phone:""}); }
+
+/* =====================================================================
+   JOB MODEL
+   ===================================================================== */
+let job=null;
+function saveJob(){ job.updated=Date.now(); return put("jobs",job); }
+function fixJob(j){
+  j.answers=j.answers||{}; j.boilers=j.boilers||[];
+  j.scope=j.scope||{requested:[""],done:[""]};
+  j.scope.requested=j.scope.requested&&j.scope.requested.length?j.scope.requested:[""];
+  j.scope.done=j.scope.done&&j.scope.done.length?j.scope.done:[""];
+  const c=j.customer=j.customer||{};
+  if(!Array.isArray(c.dist)){ c.dist=String(c.emails||"").split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean).map(e=>({name:e,email:e})); }
+  if(!j.prepared) j.prepared={name:(SETTINGS&&SETTINGS.name)||"",title:(SETTINGS&&SETTINGS.title)||""};
+  j.boilers.forEach(b=>{ if(!b.fuel||typeof b.fuel!=="object") b.fuel={type:typeof b.fuel==="string"?b.fuel:""}; b.extras=b.extras||[]; if(!FIRING[b.firing]) b.firing="burner"; });
+  return j;
+}
+const QS=()=>job.qs||LIB;
+const boilerOf=id=>job.boilers.find(x=>x.id===id);
+function setFor(scope){ const q=QS(); if(scope==="site") return q.site||[]; const b=boilerOf(scope);
+  return (q.shared||[]).concat(q[firingOf(b).part]||[]); }
+const qKey=(scope,qid)=>scope+"|"+qid;
+function ans(scope,qid){ const k=qKey(scope,qid); if(!job.answers[k]) job.answers[k]={s:"",f:"",r:"",p:"",v:"",e:""}; return job.answers[k]; }
+const answered=(it,a)=>!!(a&&(a.s||((it.d==="data")&&a.v)));
+function counts(scope){ let t=0,d=0;
+  setFor(scope).forEach(sec=>sec.items.forEach(it=>{ t++; if(answered(it,job.answers[qKey(scope,it.id)])) d++; }));
+  if(scope!=="site"){ const b=boilerOf(scope); b.extras.forEach(x=>x.items.forEach(i=>{ t++; if(i.s) d++; })); }
+  return [d,t]; }
+
+/* =====================================================================
+   NAVIGATION
+   ===================================================================== */
+const stack=[]; let objURLs=[]; let PT={}, ptN=0;
+function go(fn,...args){ stack.push([fn,args]); fn(...args); }
+function back(){ stack.pop(); if(stack.length){ const [fn,args]=stack[stack.length-1]; fn(...args);} else home(); }
+$("backBtn").onclick=back;
+function screen(title,html,fnavHtml,keepScroll){ const y=window.scrollY;
+  objURLs.forEach(u=>URL.revokeObjectURL(u)); objURLs=[];
+  $("hTitle").textContent=title; $("view").innerHTML=html;
+  $("backBtn").style.display=stack.length>1?"":"none";
+  const f=$("fnav"); if(fnavHtml){f.innerHTML=fnavHtml;f.style.display="flex";} else {f.style.display="none";}
+  if(keepScroll){ window.scrollTo(0,y); requestAnimationFrame(()=>window.scrollTo(0,y)); } else window.scrollTo(0,0); }
+function rerender(){ const [fn,args]=stack[stack.length-1]; fn(...args,true); }
+
+/* =====================================================================
+   HOME / SETTINGS
+   ===================================================================== */
+async function home(){ stack.length=0; stack.push([home,[]]); job=null;
+  const jobs=(await all("jobs")).sort((a,b)=>b.updated-a.updated);
+  let h="";
+  if(!SETTINGS.name) h+=`<div class="warnbox"><b>First time?</b> Enter your name and job title under <b>My details</b>. They are printed on the report cover as "Prepared by".</div>`;
+  h+='<button class="btn big wide" onclick="newJob()">+ New Report</button>';
+  h+=jobs.map(j=>`<div class="list-item tap" onclick="openJob('${j.id}')">
+    <div class="grow"><div class="title">${esc(j.customer&&j.customer.name)||"(no customer name)"}</div>
+    <div class="sub">${esc(j.customer&&j.customer.reportNo)||"no report no."} &middot; ${(j.boilers||[]).length} boiler(s) &middot; ${new Date(j.updated).toLocaleDateString()}${j.imported?" &middot; imported":""}</div></div>
+    <span class="badge">open</span></div>`).join("");
+  if(!jobs.length) h+='<p class="hint center">No reports yet. Tap + New Report to start.</p>';
+  h+=`<div class="card"><h2>More</h2>
+    <button class="btn sec" onclick="go(settingsView)">&#128100; My details</button>
+    <button class="btn sec" onclick="importPick()">&#128229; Import job (ZIP)</button>
+    <button class="btn sec" onclick="go(libHome)">&#9998; Questions &amp; lists</button>
+    <p class="hint">Version ${esc(APP_VER)}</p></div>`;
+  screen("JT Boiler Audit",h);
+}
+function settingsView(){ const s=SETTINGS;
+  screen("My details",`<div class="card"><p class="hint">Saved on this phone and used as "Prepared by" on every new report.</p>
+   <label>Your name</label><input type="text" id="s_name" value="${esc(s.name)}">
+   <label>Job title</label><input type="text" id="s_title" value="${esc(s.title)}">
+   <label>Email</label><input type="email" id="s_email" value="${esc(s.email)}">
+   <label>Phone</label><input type="text" id="s_phone" value="${esc(s.phone)}"></div>`,
+  `<button class="btn" onclick="saveSettings()">Save</button>`); }
+async function saveSettings(){ ["name","title","email","phone"].forEach(k=>SETTINGS[k]=$("s_"+k).value.trim());
+  await kvPut("settings",SETTINGS); back(); }
+
+async function newJob(){
+  job=fixJob({id:uid(),created:Date.now(),updated:Date.now(),
+    customer:{name:"",site:"",address:"",contact:"",phone:"",reportNo:"",date:new Date().toISOString().slice(0,10),
+      dist:SETTINGS.name?[{name:SETTINGS.name,email:SETTINGS.email||""}]:[]},
+    prepared:{name:SETTINGS.name,title:SETTINGS.title},boilers:[],answers:{}});
+  await saveJob(); go(custView); }
+async function openJob(id){ job=fixJob(await get("jobs",id)); go(jobMenu); }
+
+/* =====================================================================
+   CUSTOMER
+   ===================================================================== */
+function custView(_k){ const c=job.customer;
+  const dist=c.dist.map((d,i)=>`<div class="dist"><input type="text" placeholder="Name" value="${esc(d.name)}" onchange="distSet(${i},'name',this.value)">
+     <input type="email" placeholder="Email" value="${esc(d.email)}" onchange="distSet(${i},'email',this.value)">
+     <button class="btn warn small" style="margin:0" onclick="distDel(${i})">&#10005;</button></div>`).join("");
+  screen("Customer Details",`<div class="card">
+   <label>Report number</label><input type="text" id="c_reportNo" value="${esc(c.reportNo)}" onchange="custSet('reportNo',this.value)">
+   <label>Audit date</label><input type="date" id="c_date" value="${esc(c.date)}" onchange="custSet('date',this.value)">
+   <label>Customer name</label><input type="text" id="c_name" value="${esc(c.name)}" onchange="custSet('name',this.value)">
+   <label>Site / plant</label><input type="text" id="c_site" value="${esc(c.site)}" onchange="custSet('site',this.value)">
+   <label>Address</label><input type="text" id="c_address" value="${esc(c.address)}" onchange="custSet('address',this.value)">
+   <label>Contact person</label><input type="text" id="c_contact" value="${esc(c.contact)}" onchange="custSet('contact',this.value)">
+   <label>Contact phone</label><input type="text" id="c_phone" value="${esc(c.phone)}" onchange="custSet('phone',this.value)"></div>
+  <div class="card"><h2>Report distribution</h2><p class="hint">Names print on the report cover. "Master File" is added automatically.</p>
+   ${dist||'<p class="hint">Nobody added yet.</p>'}
+   <button class="btn sec small" onclick="distAdd()">+ Add person</button></div>
+  <div class="card"><h2>Prepared by</h2>
+   <label>Name</label><input type="text" value="${esc(job.prepared.name)}" onchange="job.prepared.name=this.value.trim();saveJob()">
+   <label>Job title</label><input type="text" value="${esc(job.prepared.title)}" onchange="job.prepared.title=this.value.trim();saveJob()"></div>`,
+  `<button class="btn" onclick="custDone()">Save &amp; Continue</button>`,_k); }
+async function custSet(k,v){ job.customer[k]=v.trim(); await saveJob(); }
+async function distSet(i,k,v){ job.customer.dist[i][k]=v.trim(); await saveJob(); }
+async function distAdd(){ job.customer.dist.push({name:"",email:""}); await saveJob(); rerender(); }
+async function distDel(i){ job.customer.dist.splice(i,1); await saveJob(); rerender(); }
+async function custDone(){ await saveJob(); if(stack.length>2) back(); else { stack.pop(); go(jobMenu); } }
+
+/* =====================================================================
+   JOB MENU
+   ===================================================================== */
+function jobMenu(_k){
+  let h=`<div class="card tap" onclick="go(custView)"><h2>1. Customer</h2><div class="sub">${esc(job.customer.name)||"tap to enter"} ${job.customer.reportNo?"&middot; "+esc(job.customer.reportNo):""}</div></div>`;
+  h+=`<div class="card"><h2>2. Boilers</h2>`;
+  job.boilers.forEach(b=>{ const [d,t]=counts(b.id);
+    h+=`<div class="list-item tap" onclick="go(boilerMenu,'${b.id}')">
+      <div class="grow"><div class="title">Boiler ${esc(b.no)} ${b.make?"- "+esc(b.make):""}</div>
+      <div class="sub">${esc(firingOf(b).short)}${b.fuel.type?" &middot; "+esc(b.fuel.type):""} &middot; ${esc(b.model)||"model?"}</div></div>
+      <span class="badge ${d===t&&t?"done":(d?"part":"")}">${d}/${t}</span></div>`; });
+  h+=`<button class="btn sec" onclick="addBoiler()">+ Add Boiler</button></div>`;
+  const [sd,st]=counts("site");
+  h+=`<div class="card tap" onclick="go(sectionList,'site')"><h2>3. Site-Wide Questions</h2><div class="sub">${sd}/${st} answered</div>
+      <div class="progress"><div style="width:${st?100*sd/st:0}%"></div></div></div>`;
+  const sw=job.scope.requested.filter(x=>x.trim()).length, wd=job.scope.done.filter(x=>x.trim()).length;
+  h+=`<div class="card tap" onclick="go(workView)"><h2>4. Scope of Work &amp; Work Done</h2><div class="sub">${sw} requested &middot; ${wd} done</div></div>`;
+  h+=`<div class="card tap" style="border:2px solid var(--jt)" onclick="go(generateView)"><h2>5. Generate Report</h2><div class="sub">Word report on this phone, or ZIP for the laptop</div></div>`;
+  h+=`<button class="btn warn small" onclick="delJob()">Delete this report</button>`;
+  screen(job.customer.name||"Report",h,null,_k);
+}
+async function delJob(){ if(!confirm("Delete this whole report and its photos from the app?"))return;
+  const ph=await photosOf(job.id); for(const p of ph) await del("photos",p.id);
+  await del("jobs",job.id); home(); }
+
+/* =====================================================================
+   SCOPE OF WORK
+   ===================================================================== */
+function workView(_k){
+  const list=(key,label)=>`<div class="card"><h2>${label}</h2>`+
+    job.scope[key].map((v,i)=>`<div style="display:flex;gap:6px;margin-top:8px">
+      <textarea style="flex:1" onchange="workSet('${key}',${i},this.value)">${esc(v)}</textarea>
+      <button class="btn warn small" onclick="workDel('${key}',${i})">&#10005;</button></div>`).join("")+
+    `<button class="btn sec small" onclick="workAdd('${key}')">+ Add item</button></div>`;
+  screen("Scope of Work",
+    `<p class="hint">List the work the customer asked for, and the work you did on site before leaving. Each item becomes a bullet in the report.</p>`+
+    list("requested","Work requested / scope of work")+list("done","Work done on site"),
+    `<button class="btn" onclick="saveJob().then(back)">Save</button>`,_k); }
+async function workSet(key,i,v){ job.scope[key][i]=v; await saveJob(); }
+async function workAdd(key){ job.scope[key].push(""); await saveJob(); rerender(); }
+async function workDel(key,i){ job.scope[key].splice(i,1); if(!job.scope[key].length) job.scope[key]=[""]; await saveJob(); rerender(); }
+
+/* =====================================================================
+   BOILERS
+   ===================================================================== */
+async function addBoiler(){ const b={id:uid(),no:String(job.boilers.length+1),make:"",model:"",serial:"",capacity:"",pressure:"",year:"",firing:"stoker",fuel:{type:""},extras:[]};
+  job.boilers.push(b); await saveJob(); go(boilerEdit,b.id); }
+function boilerMenu(bid,_k){ const b=boilerOf(bid); const [d,t]=counts(bid);
+  screen("Boiler "+b.no,
+   `<div class="card tap" onclick="go(boilerEdit,'${bid}')"><h2>Nameplate &amp; Details</h2>
+    <div class="sub">${esc(b.make)} ${esc(b.model)} &middot; S/N ${esc(b.serial)||"?"} &middot; ${esc(firingOf(b).short)}</div></div>
+    <div class="card tap" onclick="go(sectionList,'${bid}')"><h2>Questionnaire</h2><div class="sub">${d}/${t} answered &middot; fuel ${b.fuel.type?"&#10004;":"not filled in"} &middot; ${b.extras.length} additional equipment section(s)</div>
+    <div class="progress"><div style="width:${t?100*d/t:0}%"></div></div></div>
+    <button class="btn warn small" onclick="delBoiler('${bid}')">Remove boiler</button>`,null,_k); }
+async function delBoiler(bid){ if(!confirm("Remove this boiler, its answers and its photos?"))return;
+  job.boilers=job.boilers.filter(x=>x.id!==bid);
+  Object.keys(job.answers).forEach(k=>{ if(k.startsWith(bid+"|")) delete job.answers[k]; });
+  const ph=await photosOf(job.id); for(const p of ph) if(p.scope===bid) await del("photos",p.id);
+  await saveJob(); stack.pop(); jobMenu(); }
+function boilerEdit(bid){ const b=boilerOf(bid); const k=ptKey(bid,"Nameplate","Nameplate");
+  screen("Boiler "+b.no+" Details",
+  `<div class="card"><h2>Nameplate photo</h2>${photoBlock(k)}</div>
+  <div class="card"><h2>Details</h2>
+   <label>Boiler number (on site)</label><input type="text" id="b_no" value="${esc(b.no)}">
+   <label>Make</label><input type="text" id="b_make" value="${esc(b.make)}">
+   <label>Model</label><input type="text" id="b_model" value="${esc(b.model)}">
+   <label>Serial number</label><input type="text" id="b_serial" value="${esc(b.serial)}">
+   <label>Capacity (kg/h)</label><input type="text" id="b_capacity" value="${esc(b.capacity)}">
+   <label>Design pressure (bar)</label><input type="text" id="b_pressure" value="${esc(b.pressure)}">
+   <label>Year of manufacture</label><input type="text" id="b_year" value="${esc(b.year)}">
+   <label>Firing / fuel type</label><select id="b_firing">
+     ${Object.entries(FIRING).map(([v,f])=>`<option value="${v}" ${b.firing===v?"selected":""}>${esc(f.label)}</option>`).join("")}</select>
+   <p class="hint">This decides which questions you get and which fuel list is shown.</p>
+  </div>`,
+  `<button class="btn" onclick="saveBoiler('${bid}')">Save Boiler</button>`);
+  renderPhotos(k); }
+async function saveBoiler(bid){ const b=boilerOf(bid);
+  ["no","make","model","serial","capacity","pressure","year","firing"].forEach(k=>b[k]=$("b_"+k).value.trim());
+  await saveJob(); stack.pop(); go(boilerMenu,bid); }
+
+/* =====================================================================
+   PHOTOS
+   ===================================================================== */
+function ptKey(scope,tag,label){ const k="pt"+(++ptN); PT[k]={scope,tag,label}; return k; }
+function photoBlock(k){ return `<div class="photos" id="ps_${k}"></div>
+  <div class="row"><button class="btn sec small" onclick="snap('${k}','camera')">&#128247; Take photo</button>
+  <button class="btn sec small" onclick="snap('${k}','gallery')">&#128444; Upload</button></div>`; }
+let pendingShot=null;
+const fileCam=document.createElement("input"); fileCam.type="file"; fileCam.accept="image/*"; fileCam.capture="environment";
+const fileGal=document.createElement("input"); fileGal.type="file"; fileGal.accept="image/*"; fileGal.multiple=true;
+fileCam.onchange=e=>gotFiles(e.target.files); fileGal.onchange=e=>gotFiles(e.target.files);
+function snap(k,mode){ pendingShot=Object.assign({k},PT[k]); (mode==="camera"?fileCam:fileGal).click(); }
+async function gotFiles(files){ if(!pendingShot||!files||!files.length)return;
+  const {scope,tag,label,k}=pendingShot;
+  let seq=(await photosOf(job.id)).filter(p=>p.scope===scope&&p.tag===tag).length;
+  for(const f of files){ seq++;
+    const bNo = scope==="site" ? "SITE" : "B"+clean((boilerOf(scope)||{}).no||"?");
+    const fname=`${yymmdd()}_${clean(job.customer.name)}_${bNo}_${clean(label||tag)}_${String(seq).padStart(2,"0")}.jpg`;
+    await put("photos",{id:uid(),jobId:job.id,scope,tag,label:label||"",include:true,caption:"",filename:fname,blob:f,created:Date.now()});
+    try{ const a=document.createElement("a"); a.href=URL.createObjectURL(f); a.download=fname; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }catch(e){}
+  }
+  fileCam.value=""; fileGal.value=""; pendingShot=null;
+  renderPhotos(k); }
+async function renderPhotos(k){ const el=$("ps_"+k); const t=PT[k]; if(!el||!t)return;
+  const ph=(await photosOf(job.id)).filter(p=>p.scope===t.scope&&p.tag===t.tag).sort((a,b)=>a.created-b.created);
+  el.innerHTML=ph.map(p=>{ const u=URL.createObjectURL(p.blob); objURLs.push(u);
+    return `<div class="ph"><img src="${u}">
+    <input class="cap" placeholder="caption" value="${esc(p.caption)}" onchange="capChange('${p.id}',this.value)">
+    <div class="inc"><input type="checkbox" ${p.include?"checked":""} onchange="incChange('${p.id}',this.checked)"> in report</div>
+    <button class="del" onclick="delPhoto('${p.id}','${k}')">remove</button></div>`; }).join(""); }
+async function capChange(id,v){ const p=await get("photos",id); p.caption=v; await put("photos",p); }
+async function incChange(id,v){ const p=await get("photos",id); p.include=v; await put("photos",p); }
+async function delPhoto(id,k){ if(!confirm("Remove this photo from the app? (The copy in Downloads stays.)"))return;
+  await del("photos",id); renderPhotos(k); }
+
+/* =====================================================================
+   SECTION LIST (fuel + library sections + additional equipment)
+   ===================================================================== */
+function secCounts(scope,sec){ let d=0; sec.items.forEach(it=>{ if(answered(it,job.answers[qKey(scope,it.id)])) d++; }); return [d,sec.items.length]; }
+function sectionList(scope,_k){ const set=setFor(scope);
+  const isSite=scope==="site"; const b=isSite?null:boilerOf(scope);
+  const title=isSite?"Site-Wide":"Boiler "+b.no;
+  let h='<p class="hint">Tap a section to answer its questions, in any order.</p>';
+  if(!isSite){ const fcat=FUEL_CAT_LABEL[firingOf(b).fuel];
+    h+=`<div class="list-item fuel tap" onclick="go(fuelView,'${scope}')"><div class="grow"><div class="title">Fuel (${esc(fcat)})</div>
+      <div class="sub">${b.fuel.type?esc(b.fuel.type):"type, analysis &amp; photos"}</div></div>${mark(!!b.fuel.type)}</div>`; }
+  h+=set.map((sec,si)=>{ const [d,t]=secCounts(scope,sec);
+    return `<div class="list-item tap" onclick="go(quest,'${scope}',${si})">
+     <div class="grow"><div class="title">${esc(sec.section)}</div><div class="sub">${d}/${t} answered</div></div>${mark(d===t&&t>0)}</div>`; }).join("");
+  if(!isSite){
+    h+=b.extras.map(x=>{ const d=x.items.filter(i=>i.s).length, t=x.items.length;
+      return `<div class="list-item extra tap" onclick="go(extraView,'${scope}','${x.id}')"><div class="grow"><div class="title">${esc(x.name)}</div>
+        <div class="sub">Additional equipment &middot; ${d}/${t} answered</div></div>${mark(t>0&&d===t)}</div>`; }).join("");
+    h+=`<button class="btn sec wide" onclick="go(extraNew,'${scope}')">+ Add additional equipment (e.g. economiser, bag filter)</button>`; }
+  screen(title+" — Sections",h,null,_k); }
+
+/* =====================================================================
+   QUESTIONNAIRE
+   ===================================================================== */
+function quest(scope,si,_k){ const set=setFor(scope); if(si>=set.length){ back(); return; }
+  PT={}; const sec=set[si];
+  const title=scope==="site"?"Site-Wide":"Boiler "+boilerOf(scope).no;
+  let h=`<div class="hint">${esc(sec.section)} &middot; section ${si+1}/${set.length}</div>`;
+  const keys=[];
+  sec.items.forEach((it,qi)=>{ const k=ptKey(scope,it.t,it.q.replace(/^(DATA|MEASURED): /,"")); keys.push(k); h+=qCard(scope,si,qi,it,k); });
+  screen(title,h,
+   `<button class="btn sec" onclick="prevSec('${scope}',${si})">&#8592; Prev</button>
+    <button class="btn" onclick="nextSec('${scope}',${si})">${si+1<set.length?"Next section &#8594;":"Done"}</button>`,_k);
+  keys.forEach(renderPhotos); }
+function prevSec(scope,si){ if(si>0){ stack.pop(); go(quest,scope,si-1);} else back(); }
+async function nextSec(scope,si){ await saveJob(); stack.pop(); go(quest,scope,si+1); }
+const PRIOS=[["High","H"],["Medium","M"],["Low","L"],["N/A","N"]];
+function commentPanel(a,it,call){ // call = JS arg list string for handlers
+  let h='<div class="panel">';
+  if(it&&it.f) h+=`<div class="suggest"><b>Suggested finding:</b> ${esc(it.f)}<br><button class="use" onclick="useF(${call})">&#8595; Use finding</button></div>`;
+  h+=`<label>${a.s==="OK"?"Comment / finding":"Finding"}</label><textarea onchange="setF(${call},'f',this.value)">${esc(a.f)}</textarea>`;
+  if(it&&it.r) h+=`<div class="suggest"><b>Suggested recommendation:</b> ${esc(it.r)}<br><button class="use" onclick="useR(${call})">&#8595; Use recommendation</button></div>`;
+  h+=`<label>Recommendation</label><textarea onchange="setF(${call},'r',this.value)">${esc(a.r)}</textarea>
+   <label>Priority list</label><div class="prio">${PRIOS.map(([p,c])=>`<button class="${a.p===p?"on-"+c:""}" onclick="setP(${call},'${p}')">${p}</button>`).join("")}</div>
+   <p class="hint">N/A = not added to the priority list at the end of the report.</p></div>`;
+  return h; }
+function statusSeg(a,call){ return `<div class="seg">${["OK","Defect","N/A","Skip"].map(s=>{
+  const on=a.s===s?("on-"+({OK:"ok",Defect:"def","N/A":"na",Skip:"skip"}[s])):"";
+  return `<button class="${on}" onclick="setS(${call},'${s}')">${s}</button>`;}).join("")}</div>`; }
+function qCard(scope,si,qi,it,k){ const a=ans(scope,it.id); const call=`'q','${scope}','${it.id}'`;
+  const qtext=it.q.replace(/^(DATA|MEASURED): /,"");
+  let body="";
+  if(it.opts){ const other=!!a.eo;
+    body+=`<label>Equipment type</label><select onchange="pickOpt('${scope}','${it.id}',this.value)">
+     <option value="" ${!a.e&&!other?"selected":""}>-- select --</option>
+     ${it.opts.map(o=>`<option ${!other&&a.e===o?"selected":""}>${esc(o)}</option>`).join("")}
+     <option value="__other__" ${other?"selected":""}>Other / add new...</option></select>
+     ${other?`<input type="text" placeholder="type equipment name" value="${esc(a.e)}" onchange="setF(${call},'e',this.value)">`:""}`; }
+  if(it.d==="data"){ body+=`<label>Value</label><input type="text" value="${esc(a.v)}" onchange="setF(${call},'v',this.value,true)">`; }
+  else{
+    if(it.d==="measured") body+=`<label>Measured value</label><input type="text" value="${esc(a.v)}" onchange="setF(${call},'v',this.value)">`;
+    body+=statusSeg(a,call);
+    const open=a.s==="Defect"||(a.s==="OK"&&(a.c||a.f||a.r||(a.p&&a.p!=="N/A")));
+    if(open) body+=commentPanel(a,it,call);
+    else if(a.s==="OK") body+=`<button class="addc" onclick="openC(${call})">&#128172; Add comment / recommendation</button>`;
+  }
+  body+=photoBlock(k);
+  return `<div class="card"><div class="qnum">Q${qi+1} ${mark(answered(it,a))}</div><h3 class="q">${esc(qtext)}</h3>${body}</div>`; }
+
+/* shared answer handlers. kind 'q' = library question (scope,qid); kind 'x' = additional equipment item (bid, "xid:iid") */
+function target(kind,scope,id){
+  if(kind==="q") return {a:ans(scope,id), it:findItem(scope,id)};
+  const [xid,iid]=id.split(":"); const x=boilerOf(scope).extras.find(e=>e.id===xid); return {a:x.items.find(i=>i.id===iid), it:null}; }
+function findItem(scope,qid){ for(const s of setFor(scope)) for(const it of s.items) if(it.id===qid) return it; return null; }
+async function setS(kind,scope,id,s){ const {a,it}=target(kind,scope,id); a.s=(a.s===s?"":s);
+  if(a.s==="Defect"&&(!a.p||a.pAuto)){ a.p=(it&&["High","Medium","Low"].includes(it.p))?it.p:"Medium"; a.pAuto=true; }
+  if(a.s==="OK"&&(!a.p||a.pAuto)){ a.p="N/A"; a.pAuto=true; }
+  await saveJob(); rerender(); }
+async function setF(kind,scope,id,field,val,redraw){ const {a}=target(kind,scope,id); a[field]=val; await saveJob(); if(redraw) rerender(); }
+async function setP(kind,scope,id,p){ const {a}=target(kind,scope,id); a.p=p; a.pAuto=false; await saveJob(); rerender(); }
+async function openC(kind,scope,id){ const {a}=target(kind,scope,id); a.c=true; await saveJob(); rerender(); }
+async function useF(kind,scope,id){ const {a,it}=target(kind,scope,id); a.f=(a.f?a.f+" ":"")+it.f; await saveJob(); rerender(); }
+async function useR(kind,scope,id){ const {a,it}=target(kind,scope,id); a.r=(a.r?a.r+" ":"")+it.r; await saveJob(); rerender(); }
+async function pickOpt(scope,qid,v){ const a=ans(scope,qid); if(v==="__other__"){ a.eo=true; a.e=""; } else { a.eo=false; a.e=v; } await saveJob(); rerender(); }
+
+/* =====================================================================
+   FUEL FORM
+   ===================================================================== */
+function fuelView(bid,_k){ const b=boilerOf(bid); const cat=firingOf(b).fuel; const f=b.fuel; PT={};
+  const saved=LISTS.fuel[cat]; const known=saved.includes(f.type); const other=!!f.typeOther||(f.type&&!known);
+  let h=`<div class="card"><h2>${esc(FUEL_CAT_LABEL[cat])} fuel</h2>
+    <label>Fuel type</label><select onchange="fuelType('${bid}',this.value)">
+      <option value="" ${!f.type&&!other?"selected":""}>-- select --</option>
+      ${saved.map(t=>`<option ${!other&&f.type===t?"selected":""}>${esc(t)}</option>`).join("")}
+      <option value="__other__" ${other?"selected":""}>Other / add new...</option></select>
+    ${other?`<input type="text" placeholder="type the fuel name - it will be saved for next time" value="${esc(f.type)}" onchange="fuelNew('${bid}',this.value)">`:""}`;
+  FUEL_FIELDS[cat].forEach(([k,l])=>{ h+=`<label>${esc(l)}</label><input type="text" value="${esc(f[k])}" onchange="fuelSet('${bid}','${k}',this.value)">`; });
+  h+=`<label>Fuel analysis report available</label><select onchange="fuelSet('${bid}','analysis',this.value)">
+      ${["","Yes","No"].map(v=>`<option value="${v}" ${f.analysis===v?"selected":""}>${v||"-- select --"}</option>`).join("")}</select>
+    <label>Date of last fuel analysis</label><input type="text" value="${esc(f.analysisDate)}" onchange="fuelSet('${bid}','analysisDate',this.value)">
+    <label>Notes</label><textarea onchange="fuelSet('${bid}','notes',this.value)">${esc(f.notes)}</textarea></div>`;
+  const keys=FUEL_PHOTOS.map(([t,l])=>{ const k=ptKey(bid,t,l); h+=`<div class="card"><h2>${esc(l)}</h2>${photoBlock(k)}</div>`; return k; });
+  screen("Boiler "+b.no+" — Fuel",h,`<button class="btn" onclick="saveJob().then(back)">Done</button>`,_k);
+  keys.forEach(renderPhotos); }
+async function fuelType(bid,v){ const f=boilerOf(bid).fuel; if(v==="__other__"){ f.typeOther=true; f.type=""; } else { f.typeOther=false; f.type=v; } await saveJob(); rerender(); }
+async function fuelNew(bid,v){ const b=boilerOf(bid); b.fuel.type=v.trim(); rememberFuel(firingOf(b).fuel,v); await saveJob(); }
+async function fuelSet(bid,k,v){ boilerOf(bid).fuel[k]=v.trim(); await saveJob(); }
+
+/* =====================================================================
+   ADDITIONAL EQUIPMENT (custom sections per boiler)
+   ===================================================================== */
+function extraNew(bid,_k){ const names=Object.keys(LISTS.extras).sort();
+  let h=`<div class="card"><h2>Pick saved equipment</h2><p class="hint">Saved names come with the checks you used last time.</p>
+    ${names.map((n,i)=>`<button class="btn sec" onclick="extraCreate('${bid}',${i})">${esc(n)}</button>`).join("")||'<p class="hint">Nothing saved yet.</p>'}</div>
+   <div class="card"><h2>Or add new equipment</h2><input type="text" id="x_new" placeholder="e.g. Economiser, Bag filter, Air preheater">
+    <button class="btn wide" onclick="extraCreate('${bid}',-1)">Add section</button></div>`;
+  screen("Additional equipment",h,null,_k); }
+async function extraCreate(bid,i){ const names=Object.keys(LISTS.extras).sort();
+  const name=i>=0?names[i]:($("x_new").value||"").trim(); if(!name){ alert("Type a name for the equipment."); return; }
+  rememberExtra(name);
+  const key=Object.keys(LISTS.extras).find(k=>k.toLowerCase()===name.toLowerCase());
+  const x={id:uid(),name:key||name,items:(LISTS.extras[key]||[]).map(t=>({id:uid(),title:t,s:"",f:"",r:"",p:""}))};
+  boilerOf(bid).extras.push(x); await saveJob(); stack.pop(); go(extraView,bid,x.id); }
+function extraView(bid,xid,_k){ const b=boilerOf(bid); const x=b.extras.find(e=>e.id===xid); if(!x){ back(); return; } PT={};
+  let h=`<div class="card"><label>Equipment / section name</label><input type="text" value="${esc(x.name)}" onchange="extraRename('${bid}','${xid}',this.value)"></div>`;
+  const keys=[];
+  x.items.forEach((i,n)=>{ const call=`'x','${bid}','${xid}:${i.id}'`; const k=ptKey(bid,"X"+i.id,x.name+" - "+i.title); keys.push(k);
+    const open=i.s==="Defect"||(i.s==="OK"&&(i.c||i.f||i.r||(i.p&&i.p!=="N/A")));
+    h+=`<div class="card"><div class="qnum">Check ${n+1} ${mark(!!i.s)}
+      <button class="btn sec small" style="float:right;margin:0" onclick="extraDelItem('${bid}','${xid}','${i.id}')">&#10005;</button></div>
+      <h3 class="q">${esc(i.title)}</h3>${statusSeg(i,call)}
+      ${open?commentPanel(i,null,call):(i.s==="OK"?`<button class="addc" onclick="openC(${call})">&#128172; Add comment / recommendation</button>`:"")}
+      ${photoBlock(k)}</div>`; });
+  h+=`<div class="card"><h2>Add a check</h2><input type="text" id="x_item" list="x_titles" placeholder="e.g. Tubes condition">
+     <datalist id="x_titles">${(LISTS.extras[x.name]||[]).map(t=>`<option value="${esc(t)}">`).join("")}</datalist>
+     <button class="btn sec wide" onclick="extraAddItem('${bid}','${xid}')">+ Add check</button></div>
+   <button class="btn warn small" onclick="extraDel('${bid}','${xid}')">Remove this section</button>`;
+  screen("Boiler "+b.no+" — "+x.name,h,`<button class="btn" onclick="saveJob().then(back)">Done</button>`,_k);
+  keys.forEach(renderPhotos); }
+async function extraRename(bid,xid,v){ const x=boilerOf(bid).extras.find(e=>e.id===xid); x.name=v.trim()||x.name; rememberExtra(x.name); x.items.forEach(i=>rememberExtra(x.name,i.title)); await saveJob(); rerender(); }
+async function extraAddItem(bid,xid){ const t=($("x_item").value||"").trim(); if(!t)return;
+  const x=boilerOf(bid).extras.find(e=>e.id===xid); x.items.push({id:uid(),title:t,s:"",f:"",r:"",p:""}); rememberExtra(x.name,t); await saveJob(); rerender(); }
+async function extraDelItem(bid,xid,iid){ if(!confirm("Remove this check?"))return; const x=boilerOf(bid).extras.find(e=>e.id===xid);
+  x.items=x.items.filter(i=>i.id!==iid); await saveJob(); rerender(); }
+async function extraDel(bid,xid){ if(!confirm("Remove this whole section and its photos?"))return; const b=boilerOf(bid);
+  const x=b.extras.find(e=>e.id===xid); const tags=new Set(x.items.map(i=>"X"+i.id));
+  for(const p of await photosOf(job.id)) if(p.scope===bid&&tags.has(p.tag)) await del("photos",p.id);
+  b.extras=b.extras.filter(e=>e.id!==xid); await saveJob(); back(); }
+
+/* =====================================================================
+   QUESTION LIBRARY + SAVED LISTS EDITOR
+   ===================================================================== */
+function libHome(_k){
+  let h='<p class="hint">Changes here apply to every report on this phone.</p>';
+  h+=PARTS.map(([k,l])=>`<div class="list-item tap" onclick="go(libPart,'${k}')"><div class="grow"><div class="title">${esc(l)}</div>
+     <div class="sub">${LIB[k].length} section(s), ${LIB[k].reduce((s,x)=>s+x.items.length,0)} question(s)</div></div></div>`).join("");
+  h+=`<div class="list-item tap" onclick="go(listsView)"><div class="grow"><div class="title">Saved fuel types &amp; equipment</div>
+     <div class="sub">Lists that fill up as you add new fuels and additional equipment</div></div></div>`;
+  h+=`<div class="card"><h2>Backup / share questions</h2>
+   <p class="hint">Export the question library and lists as one file to back it up or give the same questions to other engineers. Import replaces this phone's library.</p>
+   <div class="row"><button class="btn sec small" onclick="libExport()">Export</button>
+   <button class="btn sec small" onclick="libImportPick()">Import</button></div>
+   <button class="btn warn small" onclick="libReset()">Reset questions to built-in</button></div>`;
+  screen("Questions & lists",h,null,_k); }
+function libPart(part,_k){
+  let h=LIB[part].map((sec,si)=>`<div class="list-item tap" onclick="go(libSection,'${part}',${si})">
+    <div class="grow"><div class="title">${esc(sec.section)}</div><div class="sub">${sec.items.length} question(s)</div></div></div>`).join("");
+  h+=`<button class="btn sec" onclick="libAddSection('${part}')">+ Add section</button>`;
+  screen(PARTS.find(p=>p[0]===part)[1],h,null,_k); }
+async function libAddSection(part){ const n=prompt("Section name:"); if(!n)return;
+  LIB[part].push({id:"s"+uid(),section:n,items:[]}); await saveLib(); rerender(); }
+function libSection(part,si,_k){ const sec=LIB[part][si];
+  let h=`<div class="card"><label>Section name</label><input type="text" value="${esc(sec.section)}" onchange="libRenameSec('${part}',${si},this.value)"></div>`;
+  h+=sec.items.map((it,qi)=>`<div class="list-item tap" onclick="go(libItem,'${part}',${si},${qi})">
+    <div class="grow"><div class="title">${esc(it.q)}</div><div class="sub">${esc((it.f||"").slice(0,70))}</div></div></div>`).join("");
+  h+=`<div class="row"><button class="btn sec" onclick="libAddItem('${part}',${si})">+ Add question</button>
+      <button class="btn warn small" onclick="libDelSec('${part}',${si})">Delete section</button></div>`;
+  screen("Edit Section",h,null,_k); }
+async function libRenameSec(part,si,v){ LIB[part][si].section=v; await saveLib(); }
+async function libDelSec(part,si){ if(!confirm("Delete this section and all its questions?"))return;
+  LIB[part].splice(si,1); await saveLib(); back(); }
+async function libAddItem(part,si){ LIB[part][si].items.push({id:"q"+uid(),q:"New question",f:"",r:"",p:"Medium",t:"NewQuestion",d:"check"});
+  await saveLib(); go(libItem,part,si,LIB[part][si].items.length-1); }
+function libItem(part,si,qi){ const it=LIB[part][si].items[qi];
+  screen("Edit Question",`<div class="card">
+   <label>Question / check text</label><textarea id="li_q">${esc(it.q)}</textarea>
+   <label>Type</label><select id="li_d">
+     <option value="check" ${it.d==="check"?"selected":""}>Check (OK / Defect / N-A / Skip)</option>
+     <option value="data" ${it.d==="data"?"selected":""}>Data entry only</option>
+     <option value="measured" ${it.d==="measured"?"selected":""}>Measured value + check</option></select>
+   <label>Pre-written finding</label><textarea id="li_f">${esc(it.f)}</textarea>
+   <label>Pre-written recommendation</label><textarea id="li_r">${esc(it.r)}</textarea>
+   <label>Default priority</label><select id="li_p">${["High","Medium","Low","N/A"].map(p=>`<option ${it.p===p?"selected":""}>${p}</option>`).join("")}</select>
+   <label>Equipment dropdown options (comma separated, empty = none)</label><input type="text" id="li_o" value="${esc((it.opts||[]).join(", "))}">
+  </div>`,
+  `<button class="btn" onclick="libSaveItem('${part}',${si},${qi})">Save</button>
+   <button class="btn warn" onclick="libDelItem('${part}',${si},${qi})">Delete</button>`); }
+async function libSaveItem(part,si,qi){ const it=LIB[part][si].items[qi];
+  it.q=$("li_q").value.trim(); it.d=$("li_d").value; it.f=$("li_f").value.trim(); it.r=$("li_r").value.trim();
+  it.p=$("li_p").value; it.t=it.t||tagOf(it.q);
+  const o=$("li_o").value.split(",").map(s=>s.trim()).filter(Boolean); if(o.length) it.opts=o; else delete it.opts;
+  await saveLib(); back(); }
+async function libDelItem(part,si,qi){ if(!confirm("Delete this question?"))return; LIB[part][si].items.splice(qi,1); await saveLib(); back(); }
+function listsView(_k){
+  let h="";
+  ["coal","oil","biomass"].forEach(c=>{ h+=`<div class="card"><h2>${FUEL_CAT_LABEL[c]} fuel types</h2>
+    ${LISTS.fuel[c].map((t,i)=>`<span class="chip">${esc(t)}<button onclick="listDelFuel('${c}',${i})">&#10005;</button></span>`).join("")}
+    <div class="dist"><input type="text" id="lf_${c}" placeholder="add fuel type"><button class="btn sec small" style="margin:0" onclick="listAddFuel('${c}')">Add</button></div></div>`; });
+  const names=Object.keys(LISTS.extras).sort();
+  h+=`<div class="card"><h2>Additional equipment</h2>${names.map((n,i)=>`<div class="list-item"><div class="grow"><div class="title">${esc(n)}</div>
+     <div class="sub">${(LISTS.extras[n]||[]).map(esc).join(" &middot; ")||"no saved checks"}</div></div>
+     <button class="btn warn small" onclick="listDelExtra(${i})">&#10005;</button></div>`).join("")||'<p class="hint">None saved yet.</p>'}</div>`;
+  screen("Saved lists",h,null,_k); }
+async function listAddFuel(c){ const v=($("lf_"+c).value||"").trim(); if(v) rememberFuel(c,v); await saveLists(); rerender(); }
+async function listDelFuel(c,i){ LISTS.fuel[c].splice(i,1); await saveLists(); rerender(); }
+async function listDelExtra(i){ const n=Object.keys(LISTS.extras).sort()[i]; if(!confirm("Remove '"+n+"' from the saved list?"))return; delete LISTS.extras[n]; await saveLists(); rerender(); }
+function libExport(){ download(new Blob([JSON.stringify({lib:LIB,lists:LISTS},null,1)],{type:"application/json"}),"JT_questions_and_lists.json"); }
+const libFile=document.createElement("input"); libFile.type="file"; libFile.accept=".json,application/json,text/plain";
+libFile.onchange=async e=>{ const f=e.target.files[0]; if(!f)return;
+  try{ let v=JSON.parse(await f.text()); let lists=null; if(v.lib){ lists=v.lists; v=v.lib; }
+    if(!v.shared||!v.site) throw new Error("this is not a question library file");
+    PARTS.forEach(([p])=>{ if(!v[p]) v[p]=seedPart(p);
+      v[p].forEach(s=>{ s.id=s.id||"s"+uid(); s.items.forEach(it=>{ it.id=it.id||"q"+uid(); it.t=it.t||tagOf(it.q); it.d=it.d||"check"; }); }); });
+    v._v=5; LIB=v; await saveLib(); if(lists){ LISTS=lists; await loadListsFix(); }
+    alert("Questions imported."); rerender();
+  }catch(err){ alert("Import failed: "+err.message); } libFile.value=""; };
+async function loadListsFix(){ LISTS.fuel=LISTS.fuel||{}; ["coal","oil","biomass"].forEach(c=>LISTS.fuel[c]=LISTS.fuel[c]||[]); LISTS.extras=LISTS.extras||{}; await saveLists(); }
+function libImportPick(){ libFile.click(); }
+async function libReset(){ if(!confirm("Replace your edited questions with the built-in questions? (Saved lists are kept.)"))return;
+  LIB=seedLib(); await saveLib(); rerender(); }
+
+/* =====================================================================
+   GENERATE REPORT SCREEN
+   ===================================================================== */
+let lastReport=null;
+async function generateView(_k){ const ph=await photosOf(job.id); const inc=ph.filter(p=>p.include).length;
+  let unanswered=0; job.boilers.forEach(b=>{ const [d,t]=counts(b.id); unanswered+=t-d; }); { const [d,t]=counts("site"); unanswered+=t-d; }
+  const warn=[];
+  if(!job.customer.name) warn.push("Customer name is empty.");
+  if(!job.customer.reportNo) warn.push("Report number is empty.");
+  if(!job.boilers.length) warn.push("No boilers added.");
+  if(unanswered) warn.push(unanswered+" question(s) not answered - they are simply left out of the report.");
+  screen("Generate Report",`
+   <div class="genbox"><h2 style="margin-top:0;color:var(--jt)">&#128196; Word report</h2>
+     <p class="hint">Builds the finished John Thompson report on this phone (${job.boilers.length} boiler(s), ${inc} photo(s)). It is saved to Downloads and you can share it straight to email or WhatsApp.</p>
+     ${warn.length?`<div class="warnbox">${warn.map(esc).join("<br>")}</div>`:""}
+     <button class="btn big wide" id="genBtn" onclick="doGenerate()">Generate Word Report</button>
+     <div class="status" id="genStatus"></div>
+     <div id="genAfter" style="display:none"><button class="btn ok wide" onclick="shareReport()">&#128228; Share report</button>
+       <button class="btn sec wide" onclick="download(lastReport.blob,lastReport.name)">Download again</button></div></div>
+   <div class="card"><h2>&#128230; Export ZIP (for the laptop)</h2>
+     <p class="hint">All answers + included photos in one ZIP, for the laptop generator or to move this job to another phone.</p>
+     <button class="btn sec wide" onclick="doExport()">Export ZIP</button><div class="status" id="expStatus"></div></div>`,null,_k);
+  if(lastReport&&lastReport.jobId===job.id){ $("genAfter").style.display=""; $("genStatus").textContent="Ready: "+lastReport.name; } }
+function reportFileName(){ const c=job.customer; return [c.reportNo?clean(c.reportNo):yymmdd(), clean(c.name)||"Customer", "Boiler_House_Audit_Report"].join("_")+".docx"; }
+async function doGenerate(){ const btn=$("genBtn"), st=$("genStatus"); btn.disabled=true; $("genAfter").style.display="none";
+  try{ const t0=Date.now();
+    const blob=await buildDocx(job,msg=>{ st.textContent=msg; });
+    const name=reportFileName(); lastReport={blob,name,jobId:job.id};
+    download(blob,name);
+    st.textContent=`Done in ${Math.round((Date.now()-t0)/1000)} s - ${name} (${(blob.size/1048576).toFixed(1)} MB) is in your Downloads.`;
+    $("genAfter").style.display="";
+  }catch(e){ console.error(e); st.textContent="Could not build the report: "+(e&&e.message||e); }
+  btn.disabled=false; }
+async function shareReport(){ if(!lastReport)return; const file=new File([lastReport.blob],lastReport.name,{type:lastReport.blob.type});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],title:lastReport.name}); }catch(e){} }
+  else alert("Sharing is not available here - the report is in your Downloads folder."); }
+function download(blob,name){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),60000); }
+
+/* =====================================================================
+   REPORT MODEL (shared logic with generator/generate_report.py)
+   ===================================================================== */
+const cleanSec=s=>String(s||"").replace(/\s*\((?:report|data)[^)]*\)\s*$/i,"").trim();
+const qText=it=>String(it.q||"").replace(/^(DATA|MEASURED): /,"");
+const baseName=q=>q.replace(/\s*(&\s*)?condition(\s*&\s*test)?\s*$/i,"").trim();
+function findingOf(it,a){ let t=a.s==="Defect"?(a.f||(it&&it.f)||""):(a.s==="OK"?(a.f||""):"");
+  if(a.v) t=t.replace(/_{3,}/g,a.v); return t.trim(); }
+function recOf(it,a){ return (a.s==="Defect"?(a.r||(it&&it.r)||""):(a.s==="OK"?(a.r||""):"")).trim(); }
+const PRIO=["High","Medium","Low"];
+function reportModel(J){
+  const qs=J.qs||LIB;
+  const setOf=b=>(qs.shared||[]).concat(qs[(FIRING[b.firing]||FIRING.burner).part]||[]);
+  const bLabel=b=>"Boiler "+(b.no||"");
+  const order=[], secs={};               // section name -> [{boiler,data,find,recs}]
+  const prio={High:[],Medium:[],Low:[]};  // [{group, text, section}]
+  const addPrio=(p,group,text,section)=>{ if(PRIO.includes(p)&&text) prio[p].push({group,text,section}); };
+  J.boilers.forEach(b=>{
+    const entries=[];
+    setOf(b).forEach(sec=>{ const e={name:cleanSec(sec.section),data:[],find:[],recs:[],touched:false};
+      sec.items.forEach(it=>{ const a=J.answers[b.id+"|"+it.id]; if(!a) return;
+        if(a.s||a.v||a.e) e.touched=true;
+        if(it.opts&&a.e) e.data.push(baseName(qText(it))+": "+a.e);
+        if((it.d==="data"||it.d==="measured")&&a.v) e.data.push(qText(it)+": "+a.v);
+        if(a.s==="Defect"||a.s==="OK"){ const f=findingOf(it,a), r=recOf(it,a);
+          if(f) e.find.push(f); if(r) e.recs.push(r); addPrio(a.p,bLabel(b),r||f,e.name); } });
+      entries.push(e); });
+    (b.extras||[]).forEach(x=>{ const e={name:cleanSec(x.name),data:[],find:[],recs:[],extra:true,touched:false};
+      x.items.forEach(i=>{ if(i.s) e.touched=true; if(i.s!=="Defect"&&i.s!=="OK") return;
+        let f=(i.f||"").trim(); const r=(i.r||"").trim();
+        if(!f&&i.s==="Defect") f=i.title+": defect noted.";
+        if(f) e.find.push(f); if(r) e.recs.push(r); addPrio(i.p,bLabel(b),r||f,e.name); });
+      entries.push(e); });
+    entries.filter(e=>e.touched).forEach(e=>{ if(!secs[e.name]){ secs[e.name]=[]; order.push(e.name); } secs[e.name].push(Object.assign({boiler:b},e)); });
+  });
+  const site=(qs.site||[]).map(sec=>{ const e={name:cleanSec(sec.section),find:[],recs:[],touched:false};
+    sec.items.forEach(it=>{ const a=J.answers["site|"+it.id]; if(a&&(a.s||a.v)) e.touched=true; if(!a||(a.s!=="Defect"&&a.s!=="OK")) return;
+      const f=findingOf(it,a), r=recOf(it,a); if(f) e.find.push(f); if(r) e.recs.push(r); addPrio(a.p,"Site",r||f,e.name); });
+    return e; }).filter(e=>e.touched);
+  const groups=J.boilers.map(bLabel).concat(["Site"]);
+  return {order,secs,site,prio,groups};
+}
+
+/* =====================================================================
+   WORD (DOCX) WRITER — fills the JT template skeleton
+   ===================================================================== */
+const XE=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"");
+const BODY_W=9412;  // twips between the 2.2 cm side margins
+function wRuns(text,o){ o=o||{};
+  let rpr=""; if(o.bold) rpr+="<w:b/>"; if(o.italic) rpr+="<w:i/>"; if(o.sz) rpr+=`<w:sz w:val="${o.sz}"/><w:szCs w:val="${o.sz}"/>`;
+  rpr=rpr?`<w:rPr>${rpr}</w:rPr>`:"";
+  return String(text==null?"":text).split("\t").map(s=>s?`<w:r>${rpr}<w:t xml:space="preserve">${XE(s)}</w:t></w:r>`:"").join(`<w:r>${rpr}<w:tab/></w:r>`); }
+function wP(text,o){ o=o||{}; let ppr="";
+  if(o.style) ppr+=`<w:pStyle w:val="${o.style}"/>`;
+  if(o.keepNext) ppr+="<w:keepNext/>";
+  if(o.keepLines) ppr+="<w:keepLines/>";
+  if(o.tabs) ppr+="<w:tabs>"+o.tabs.map(p=>`<w:tab w:val="left" w:pos="${p}"/>`).join("")+"</w:tabs>";
+  if(o.before!=null||o.after!=null) ppr+=`<w:spacing${o.before!=null?` w:before="${o.before}"`:""}${o.after!=null?` w:after="${o.after}"`:""}/>`;
+  if(o.ind) ppr+=`<w:ind w:left="${o.ind[0]}" w:hanging="${o.ind[1]}"/>`;
+  if(o.jc) ppr+=`<w:jc w:val="${o.jc}"/>`;
+  return `<w:p>${ppr?`<w:pPr>${ppr}</w:pPr>`:""}${o.raw||wRuns(text,o)}</w:p>`; }
+const wPageBreak=()=>`<w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
+const wH=(lvl,text,upper)=>wP((upper==null?lvl<=2:upper)?String(text).toUpperCase():text,{style:"Heading"+lvl,keepNext:true});
+const wBullet=t=>wP("•\t"+t,{style:"ListParagraph",ind:[720,360],tabs:[720],after:40});
+const wLabel=(t,o)=>wP(t,Object.assign({bold:true,keepNext:true,before:120,after:40},o||{}));
+function wTable(rows,widths,o){ o=o||{};
+  const grid=widths.map(w=>`<w:gridCol w:w="${w}"/>`).join("");
+  const trs=rows.map(r=>`<w:tr><w:trPr><w:cantSplit/></w:trPr>${r.map((c,i)=>`<w:tc><w:tcPr><w:tcW w:w="${widths[i]}" w:type="dxa"/></w:tcPr>${wP(c,{bold:o.boldFirst&&i===0,after:0})}</w:tc>`).join("")}</w:tr>`).join("");
+  return `<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="${widths.reduce((a,b)=>a+b,0)}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblLook w:val="04A0"/></w:tblPr><w:tblGrid>${grid}</w:tblGrid>${trs}</w:tbl>`+wP("",{after:0}); }
+function wImage(rid,cx,cy,id){ return `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Photo ${id}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${id}" name="photo${id}.jpg"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`; }
+/* photo grid: 2 x 2 per page, image fitted in BOX, rows spread evenly */
+const EMU_CM=360000, BOX_W=Math.round(7.6*EMU_CM), BOX_H=Math.round(8.4*EMU_CM), ROW_H=Math.round(9.8*567);
+function wPhotoGrid(cells){ const colW=BODY_W/2;
+  const cell=c=>`<w:tc><w:tcPr><w:tcW w:w="${colW}" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${c?
+    wP("",{jc:"center",before:60,after:60,keepNext:true,raw:c.img})+wP(c.cap,{jc:"center",italic:true,sz:18,after:60}):wP("",{after:0})}</w:tc>`;
+  let rows="";
+  for(let i=0;i<cells.length;i+=2) rows+=`<w:tr><w:trPr><w:cantSplit/><w:trHeight w:val="${ROW_H}" w:hRule="atLeast"/></w:trPr>${cell(cells[i])}${cell(cells[i+1])}</w:tr>`;
+  const nb=["top","left","bottom","right","insideH","insideV"].map(s=>`<w:${s} w:val="nil"/>`).join("");
+  return `<w:tbl><w:tblPr><w:tblW w:w="${BODY_W}" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders>${nb}</w:tblBorders><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="${colW}"/><w:gridCol w:w="${colW}"/></w:tblGrid>${rows}</w:tbl>`; }
+
+/* photo normalising: apply phone orientation, shrink to 1600 px, re-encode */
+async function docPhoto(blob){
+  let bmp; try{ bmp=await createImageBitmap(blob,{imageOrientation:"from-image"}); }catch(e){ bmp=await createImageBitmap(blob); }
+  const s=Math.min(1,1600/Math.max(bmp.width,bmp.height)); const W=Math.max(1,Math.round(bmp.width*s)), H=Math.max(1,Math.round(bmp.height*s));
+  const c=document.createElement("canvas"); c.width=W; c.height=H; const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,W,H); g.drawImage(bmp,0,0,W,H);
+  if(bmp.close) bmp.close();
+  const out=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("photo encode failed")),"image/jpeg",0.85)); c.width=c.height=1;
+  return {bytes:new Uint8Array(await out.arrayBuffer()),w:W,h:H}; }
+function photoLabel(J,p){ if(p.label) return p.label;
+  const qs=J.qs||LIB; for(const part of Object.keys(qs)) if(Array.isArray(qs[part])) for(const s of qs[part]) for(const it of s.items) if(it.t===p.tag) return qText(it);
+  const fp=FUEL_PHOTOS.find(f=>f[0]===p.tag); if(fp) return fp[1];
+  return String(p.tag||"Photo").replace(/([a-z])([A-Z])/g,"$1 $2"); }
+function photoOrder(J,photos){ // nameplate, fuel, questionnaire order, additional equipment, rest
+  const rank={}; let n=0; const qs=J.qs||LIB;
+  J.boilers.forEach(b=>{ rank[b.id+"|Nameplate"]=n++; FUEL_PHOTOS.forEach(f=>rank[b.id+"|"+f[0]]=n++);
+    (qs.shared||[]).concat(qs[(FIRING[b.firing]||FIRING.burner).part]||[]).forEach(s=>s.items.forEach(it=>{ const k=b.id+"|"+it.t; if(!(k in rank)) rank[k]=n++; }));
+    (b.extras||[]).forEach(x=>x.items.forEach(i=>rank[b.id+"|X"+i.id]=n++)); });
+  (qs.site||[]).forEach(s=>s.items.forEach(it=>{ const k="site|"+it.t; if(!(k in rank)) rank[k]=n++; }));
+  return photos.slice().sort((a,b)=>((rank[a.scope+"|"+a.tag]??1e6)-(rank[b.scope+"|"+b.tag]??1e6))||((a.created||0)-(b.created||0))); }
+
+function boilerSentence(b){ const f=FIRING[b.firing]||FIRING.burner; const ft=(b.fuel&&b.fuel.type)||"";
+  const fire=b.firing==="stoker"?"coal-fired chain grate stoker":b.firing==="biomass"?("biomass-fired"+(ft?` (${ft})`:"")):((ft?ft+"-fired":"oil / gas-fired")+" burner");
+  let s=`Boiler ${b.no||""} is a ${[b.make,b.model].filter(Boolean).join(" ")||"boiler"}`.replace(/ is a boiler$/," is a");
+  s+=` ${fire} boiler`;
+  const parts=[]; if(b.capacity) parts.push(`a rated capacity of ${b.capacity} kg/h`); if(b.pressure) parts.push(`a design pressure of ${b.pressure} bar(g)`);
+  if(parts.length) s+=" with "+parts.join(" and ");
+  if(b.year) s+=`, manufactured in ${b.year}`; if(b.serial) s+=` (serial no. ${b.serial})`; s+=".";
+  const xs=(b.extras||[]).map(x=>x.name).filter(Boolean); if(xs.length) s+=` The boiler is fitted with the following additional equipment: ${xs.join(", ")}.`;
+  return s; }
+function fuelRows(b){ const f=b.fuel||{}; const cat=(FIRING[b.firing]||FIRING.burner).fuel; const rows=[];
+  if(f.type) rows.push(["Fuel type",f.type]);
+  FUEL_FIELDS[cat].concat(FUEL_COMMON_END).forEach(([k,l])=>{ if(f[k]) rows.push([l,f[k]]); });
+  return rows; }
+
+async function buildDocx(J,prog){
+  prog=prog||(()=>{}); const M=reportModel(J); const c=J.customer||{}; const prep=J.prepared||{};
+  const custLine=[c.name,c.site].filter(Boolean).join(" - ");
+  let B="";
+  // ---- executive summary ----
+  B+=wP("EXECUTIVE SUMMARY",{style:"ExecTitle"});
+  B+=wP(BP.exec_intro.replace("{customer}",custLine||"the customer's site").replace("{date}",fmtDate(c.date)));
+  const themes=[]; const seenT={};
+  ["High","Medium"].forEach(p=>M.prio[p].forEach(e=>{ const key=e.section+"|"+e.text.toLowerCase(); if(seenT[key])return; seenT[key]=1;
+    let t=themes.find(x=>x.s===e.section); if(!t){ t={s:e.section,items:[]}; themes.push(t); } t.items.push(e.text); }));
+  if(themes.length){ B+=wP(BP.exec_recommend_lead); themes.forEach(t=>{ B+=wLabel(t.s+":"); t.items.forEach(x=>B+=wBullet(x)); }); }
+  else B+=wP(BP.exec_none);
+  B+=wPageBreak();
+  // ---- 1 objective, 2 scope ----
+  B+=wH(1,"Objective")+wP(BP.objective);
+  B+=wH(1,"Scope of Work");
+  const req=(J.scope&&J.scope.requested||[]).filter(x=>x&&x.trim()); B+=req.length?req.map(wBullet).join(""):wP(BP.scope_default);
+  // ---- 3 description ----
+  B+=wH(1,"Description of Boiler Plant"); J.boilers.forEach(b=>B+=wP(boilerSentence(b)));
+  if(!J.boilers.length) B+=wP("No boilers were recorded.");
+  // ---- 4 fuel ----
+  const anyFuel=J.boilers.some(b=>fuelRows(b).length);
+  if(anyFuel){ B+=wH(1,"Fuel");
+    J.boilers.forEach(b=>{ const rows=fuelRows(b); B+=wH(2,`Boiler ${b.no}${b.fuel&&b.fuel.type?" - "+b.fuel.type:""}`,false);
+      B+=rows.length?wTable(rows,[3800,BODY_W-3800],{boldFirst:true}):wP("Fuel details were not recorded."); }); }
+  // ---- 5 boiler inspection findings ----
+  B+=wH(1,"Boiler Inspection Findings");
+  if(!M.order.length) B+=wP("No boiler inspection findings were recorded.");
+  M.order.forEach(name=>{ B+=wH(2,name);
+    M.secs[name].forEach(e=>{ B+=wH(3,"Boiler "+e.boiler.no,false);
+      e.data.forEach(d=>B+=wBullet(d));
+      if(e.find.length){ B+=wLabel("Findings"); e.find.forEach(f=>B+=wBullet(f)); }
+      if(e.recs.length){ B+=wLabel("Recommendations"); e.recs.forEach(r=>B+=wBullet(r)); }
+      if(!e.data.length&&!e.find.length&&!e.recs.length) B+=wP(BP.no_issues); }); });
+  // ---- 6 site ----
+  if(M.site.length){ B+=wH(1,"Site-Wide Findings and Recommendations");
+    M.site.forEach(e=>{ B+=wH(2,e.name);
+      if(e.find.length){ B+=wLabel("Findings"); e.find.forEach(f=>B+=wBullet(f)); }
+      if(e.recs.length){ B+=wLabel("Recommendations"); e.recs.forEach(r=>B+=wBullet(r)); }
+      if(!e.find.length&&!e.recs.length) B+=wP(BP.no_issues); }); }
+  // ---- 7 efficiency ----
+  B+=wH(1,"Efficiency")+wP(BP.efficiency_text);
+  const firings=[...new Set(J.boilers.map(b=>b.firing))].filter(f=>BP.efficiency_targets[f]);
+  if(firings.length) B+=wTable([["Firing","Target flue gas O2"]].concat(firings.map(f=>BP.efficiency_targets[f])),[5600,BODY_W-5600],{boldFirst:false});
+  // ---- 8 recommendations ----
+  B+=wH(1,"Recommendations");
+  PRIO.forEach(p=>{ B+=wH(2,p+" Priority",false); const items=M.prio[p];
+    if(!items.length){ B+=wP("None."); return; }
+    M.groups.forEach(g=>{ const its=items.filter(e=>e.group===g); if(!its.length) return; B+=wLabel(g); its.forEach(e=>B+=wBullet(e.text)); }); });
+  // ---- 9 work done ----
+  B+=wH(1,"Work Done on Site");
+  const done=(J.scope&&J.scope.done||[]).filter(x=>x&&x.trim()); B+=done.length?done.map(wBullet).join(""):wP(BP.work_done_none);
+  // ---- 10 appendix ----
+  B+=wPageBreak()+wH(1,"Appendix A - Boiler Details");
+  J.boilers.forEach(b=>{ B+=wLabel("Boiler "+b.no);
+    const rows=[["Make",b.make],["Model",b.model],["Serial number",b.serial],["Capacity (kg/h)",b.capacity],["Design pressure (bar g)",b.pressure],["Year of manufacture",b.year],["Firing",(FIRING[b.firing]||FIRING.burner).label],["Fuel",b.fuel&&b.fuel.type]];
+    const xs=(b.extras||[]).map(x=>x.name).filter(Boolean); if(xs.length) rows.push(["Additional equipment",xs.join(", ")]);
+    B+=wTable(rows.map(r=>[r[0],r[1]||"-"]),[3800,BODY_W-3800],{boldFirst:true}); });
+  // ---- 11 photographs ----
+  const media=[]; let fig=0, rid=0, did=900000000;
+  const allPh=(await photosOf(J.id)).filter(p=>p.include);
+  if(allPh.length){
+    const ordered=photoOrder(J,allPh); const total=ordered.length;
+    const scopes=J.boilers.map(b=>b.id).concat(["site"]); const lab=s=>s==="site"?"Site":"Boiler "+(boilerOf2(J,s)||{}).no;
+    B+=wPageBreak()+wH(1,"Photographs"); let first=true, done_n=0;
+    for(const s of scopes){ const list=ordered.filter(p=>p.scope===s); if(!list.length) continue;
+      if(!first) B+=wPageBreak(); first=false;
+      B+=wH(2,lab(s),false);
+      for(let i=0;i<list.length;i+=4){
+        if(i>0) B+=wPageBreak()+wLabel(lab(s)+" (continued)",{keepNext:true});
+        const cells=[];
+        for(const p of list.slice(i,i+4)){ done_n++; prog(`Preparing photo ${done_n} of ${total}...`);
+          let ph; try{ ph=await docPhoto(p.blob); }catch(e){ cells.push({img:wRuns("[photo could not be read]"),cap:p.filename||""}); continue; }
+          fig++; rid++; did++; const r="rIdJTPh"+rid; media.push({rid:r,name:`media/jtphoto${rid}.jpg`,bytes:ph.bytes});
+          let cx=BOX_W, cy=Math.round(BOX_W*ph.h/ph.w); if(cy>BOX_H){ cy=BOX_H; cx=Math.round(BOX_H*ph.w/ph.h); }
+          cells.push({img:wImage(r,cx,cy,did),cap:`Figure ${fig}: ${lab(s)} - ${p.caption||photoLabel(J,p)}`});
+          await new Promise(r=>setTimeout(r,0)); }
+        B+=wPhotoGrid(cells); } } }
+  prog("Assembling Word document...");
+  // ---- fill the template skeleton ----
+  const files={}; for(const [path,[kind,data]] of Object.entries(TPL.files)) files[path]=kind==="b"?b64bytes(data):data;
+  const distRec=(c.dist||[]).filter(d=>d.name||d.email);
+  const distLine=(nm,how)=>TPL.dist.split("@@NAME@@").join(XE(nm)).split("@@HOW@@").join(how);
+  const distXml=distRec.map(d=>distLine(d.name||d.email,"(email)")).join("")+distLine("Master File","");
+  let doc=files["word/document.xml"];
+  doc=doc.split("@@CUSTOMER@@").join(XE(custLine)).split("@@REPORTNO@@").join(XE(c.reportNo||""))
+         .split("@@PREPNAME@@").join(XE(prep.name||BP.prepared_by_name)).split("@@PREPTITLE@@").join(XE(prep.title||BP.prepared_by_title))
+         .split("@@DIST@@").join(distXml);
+  doc=doc.replace("@@BODY@@",()=>B);
+  files["word/document.xml"]=doc;
+  for(const path of Object.keys(files)) if(/^word\/header\d+\.xml$/.test(path))
+    files[path]=files[path].split("@@HRN@@").join(XE(c.reportNo||"")).split("@@HCUST@@").join(XE(custLine)).split("@@HDATE@@").join(XE(fmtDate(c.date)));
+  files["word/_rels/document.xml.rels"]=files["word/_rels/document.xml.rels"].replace("</Relationships>",
+    media.map(m=>`<Relationship Id="${m.rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="${m.name.replace(/^media\//,"media/")}"/>`).join("")+"</Relationships>");
+  media.forEach(m=>files["word/"+m.name]=m.bytes);
+  const enc=new TextEncoder(); const names=Object.keys(files).sort((a,b)=>(a==="[Content_Types].xml"?-1:b==="[Content_Types].xml"?1:0));
+  return zipBlob(names.map(n=>({name:n,data:typeof files[n]==="string"?enc.encode(files[n]):files[n]})),"application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+}
+const boilerOf2=(J,id)=>J.boilers.find(b=>b.id===id);
+function b64bytes(s){ const bin=atob(s); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u; }
+
+/* =====================================================================
+   ZIP (write: store method; read: store + deflate)
+   ===================================================================== */
+const CRC=(()=>{const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[i]=c;}return t;})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function zipBlob(files,type){ const enc=new TextEncoder(); const parts=[]; const central=[]; let offset=0;
+  const num=(n,b)=>{const a=new Uint8Array(b);for(let i=0;i<b;i++)a[i]=(n>>>(8*i))&0xFF;return a;};
+  const d=new Date(); const dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1)), dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate());
+  for(const f of files){ const name=enc.encode(f.name); const crc=crc32(f.data);
+    const lh=[num(0x04034b50,4),num(20,2),num(0x0800,2),num(0,2),num(dt,2),num(dd,2),num(crc,4),num(f.data.length,4),num(f.data.length,4),num(name.length,2),num(0,2),name];
+    central.push({name,crc,size:f.data.length,offset});
+    lh.forEach(a=>{parts.push(a);offset+=a.length;}); parts.push(f.data); offset+=f.data.length; }
+  const cdStart=offset; let cdLen=0;
+  for(const c of central){ const cd=[num(0x02014b50,4),num(20,2),num(20,2),num(0x0800,2),num(0,2),num(dt,2),num(dd,2),num(c.crc,4),num(c.size,4),num(c.size,4),num(c.name.length,2),num(0,2),num(0,2),num(0,2),num(0,2),num(0,4),num(c.offset,4),c.name];
+    cd.forEach(a=>{parts.push(a);cdLen+=a.length;}); }
+  parts.push(num(0x06054b50,4),num(0,2),num(0,2),num(central.length,2),num(central.length,2),num(cdLen,4),num(cdStart,4),num(0,2));
+  return new Blob(parts,{type}); }
+async function unzip(buf){ const u8=new Uint8Array(buf), dv=new DataView(buf); let e=-1;
+  for(let i=u8.length-22;i>=Math.max(0,u8.length-65558);i--) if(dv.getUint32(i,true)===0x06054b50){ e=i; break; }
+  if(e<0) throw new Error("not a ZIP file");
+  const n=dv.getUint16(e+10,true); let p=dv.getUint32(e+16,true); const out={}; const dec=new TextDecoder();
+  for(let k=0;k<n;k++){ if(dv.getUint32(p,true)!==0x02014b50) throw new Error("damaged ZIP");
+    const method=dv.getUint16(p+10,true), csize=dv.getUint32(p+20,true), nlen=dv.getUint16(p+28,true), elen=dv.getUint16(p+30,true), clen=dv.getUint16(p+32,true), lho=dv.getUint32(p+42,true);
+    const name=dec.decode(u8.subarray(p+46,p+46+nlen)); p+=46+nlen+elen+clen;
+    if(name.endsWith("/")) continue;
+    const start=lho+30+dv.getUint16(lho+26,true)+dv.getUint16(lho+28,true); const data=u8.slice(start,start+csize);
+    if(method===0) out[name]=data;
+    else if(method===8) out[name]=new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+    else throw new Error("unsupported ZIP compression in "+name); }
+  return out; }
+
+/* =====================================================================
+   EXPORT / IMPORT JOB ZIP
+   ===================================================================== */
+async function jobMeta(J,photos){ return {app:"JT Audit Capture "+APP_VER,schema:5,exported:new Date().toISOString(),
+  customer:J.customer,prepared:J.prepared,boilers:J.boilers,answers:J.answers,scope:J.scope,questionSets:J.qs||LIB,
+  photos:photos.map(p=>({file:"photos/"+p.filename,scope:p.scope,tag:p.tag,label:photoLabel(J,p),caption:p.caption||""}))}; }
+async function doExport(){ const st=$("expStatus"); st.textContent="Packing...";
+  try{ const ph=photoOrder(job,(await photosOf(job.id)).filter(p=>p.include));
+    const used=new Set(); ph.forEach(p=>{ let f=p.filename||(p.id+".jpg"); while(used.has(f)) f=f.replace(/(\.jpg)?$/,"_"+p.id.slice(-3)+".jpg"); used.add(f); p.filename=f; });
+    const meta=await jobMeta(job,ph); const files=[{name:"report_data.json",data:new TextEncoder().encode(JSON.stringify(meta,null,1))}];
+    for(const p of ph) files.push({name:"photos/"+p.filename,data:new Uint8Array(await p.blob.arrayBuffer())});
+    const name=`${yymmdd()}_${clean(job.customer.name)}_${clean(job.customer.reportNo)||"audit"}.zip`;
+    download(zipBlob(files,"application/zip"),name); st.textContent="Done - "+name+" is in your Downloads.";
+  }catch(e){ st.textContent="Export failed: "+(e&&e.message||e); } }
+const zipFile=document.createElement("input"); zipFile.type="file"; zipFile.accept=".zip,application/zip,application/x-zip-compressed";
+zipFile.onchange=async e=>{ const f=e.target.files[0]; zipFile.value=""; if(!f)return;
+  try{ const z=await unzip(await f.arrayBuffer()); if(!z["report_data.json"]) throw new Error("report_data.json not found in this ZIP");
+    const m=JSON.parse(new TextDecoder().decode(z["report_data.json"]));
+    const J=fixJob({id:uid(),created:Date.now(),updated:Date.now(),imported:true,customer:m.customer||{},prepared:m.prepared,
+      boilers:m.boilers||[],answers:m.answers||{},scope:m.scope,qs:m.questionSets||null});
+    if(J.qs) PARTS.forEach(([p])=>{ J.qs[p]=J.qs[p]||[]; });
+    let n=0, t0=Date.now();
+    for(const p of (m.photos||[])){ const bytes=z[p.file]; if(!bytes) continue;
+      await put("photos",{id:uid(),jobId:J.id,scope:p.scope,tag:p.tag,label:p.label||"",include:true,caption:p.caption||"",
+        filename:p.file.split("/").pop(),blob:new Blob([bytes],{type:"image/jpeg"}),created:t0+(n++)}); }
+    await put("jobs",J); alert(`Imported "${J.customer.name||"report"}" with ${n} photo(s).`); home();
+  }catch(err){ alert("Import failed: "+(err&&err.message||err)); } };
+function importPick(){ zipFile.click(); }
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+idb().then(loadSettings).then(loadLib).then(loadLists).then(home)
+  .catch(e=>{ $("view").innerHTML='<div class="card">Storage error: '+esc(e&&e.message||String(e))+'</div>'; });
+</script>
+</body>
+</html>

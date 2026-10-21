@@ -1,0 +1,18 @@
+{
+  "_note": "Standard report wording. The cover page, disclaimer and confidentiality text come from JT_Report_Template.docx itself. After editing this file, rebuild the phone app with tools/build_app.py so the app uses the same wording.",
+  "objective": "John Thompson was assigned to perform a boiler house audit, carry out the necessary inspections, and provide recommendations to address any identified deficiencies.",
+  "prepared_by_name": "Service Engineer",
+  "prepared_by_title": "John Thompson",
+  "exec_intro": "John Thompson was requested to perform a boiler house audit at {customer} on {date}. The audit consisted of a visual inspection of the boiler plant, testing of safety devices, testing of boiler controls and a general inspection of the boiler house and steam reticulation system.",
+  "exec_recommend_lead": "The following actions are recommended to improve compliance of the boiler house with statutory regulations and to improve the operation and thermal efficiency of the boiler plant:",
+  "exec_none": "No significant deficiencies were noted at the time of the audit.",
+  "scope_default": "A boiler house audit was performed as detailed in the sections below.",
+  "no_issues": "No issues noted at time of inspection.",
+  "work_done_none": "No additional work was performed during the audit.",
+  "efficiency_text": "Generally, the instrumentation required to complete an efficiency test is as follows: flue gas oxygen content, flue gas exit temperature, ambient air temperature and combustion (CO) readings. The table below indicates the flue gas oxygen content that should be achieved for optimal combustion efficiency. These values are provided as an indication to the customer of what should be achievable.",
+  "efficiency_targets": {
+    "stoker": ["Coal-fired chain grate stoker", "8 % O2"],
+    "burner": ["Oil / gas-fired burner", "3 - 6 % O2"],
+    "biomass": ["Biomass-fired", "6 - 8 % O2"]
+  }
+}

@@ -1,0 +1,529 @@
+JT AUDIT APP - BUILT-IN QUESTIONS (version 5.0)
+================================================
+
+
+############################################################
+SHARED - every boiler
+############################################################
+
+--- Boiler Water Level (report 6.1) ---
+
+1. Gauge glass / sight glass condition   [default priority: High]
+   FINDING: Sight glass not clearly visible / leaking and needs replacement.
+   RECOMMENDATION: Replace/repair sight glass. The gauge glass should be blown down once per shift to ensure it is working correctly and the standpipes do not become blocked with scale.
+
+2. Gauge glass blown down each shift?   [default priority: Medium]
+   FINDING: Gauge glasses are not blown down at the beginning of each shift.
+   RECOMMENDATION: The gauge glasses should be blown down once per shift to ensure that they are working correctly and that the standpipes do not become blocked with scale.
+
+3. Water level control type & condition   [default priority: High]
+   FINDING: Water level Mobrey switches badly worn / water level control not ideal with slow response.
+   RECOMMENDATION: Upgrade the water level control system by installing a Spirax LP21 probe, controller and a VSD for the feedwater pump for modulating control of the water level.
+   EQUIPMENT OPTIONS: Mobrey, Spirax LP20 probe, Spirax LP21 probe, K-Tek probe
+
+4. Extra low water cut-out condition & test   [default priority: High]
+   FINDING: Extra low water Mobrey worn / extra low water lock-out could not be verified.
+   RECOMMENDATION: Upgrade the extra low water protection by installing a Spirax LP40 probe and extra low water controller. Blow down every shift to check that the boiler trips and locks out at extra low water level.
+   EQUIPMENT OPTIONS: Mobrey, Spirax LP30, Spirax LP40
+
+5. Level control blowdown pipework   [default priority: High]
+   FINDING: Mobrey/level control blowdown pipework bent or damaged; blowdown not possible.
+   RECOMMENDATION: Replace/repair the sight glass and level control blowdown pipework as soon as possible.
+
+6. Low / extra low / high water alarms (audible + visual)   [default priority: High]
+   FINDING: Alarms for low and high water levels not correct: no audible low water alarm / no separate extra low alarm / no record kept of alarm tests.
+   RECOMMENDATION: All alarms, audible and visual, should be recorded. If the water level in the gauge glass is correct and a low water alarm persists, the level controls should be checked; if the level remains low, check the feedwater pumps.
+
+7. Records of alarm tests available?   [default priority: Medium]
+   FINDING: Records of alarm tests could not be provided for review.
+   RECOMMENDATION: Record all alarm tests in the daily logbook and retain records for review.
+
+8. Feedwater pump condition & automation   [default priority: High]
+   FINDING: Feedwater pump faulty / cannot keep up with steam demand / no automation of feedwater pumps.
+   RECOMMENDATION: Urgent attention should be paid to malfunctioning boiler feedwater pumps and to the automation controls of the feedwater pumps.
+
+9. Feedwater pump protection installed?   [default priority: Medium]
+   FINDING: No feedwater pump protection is installed on the pumps.
+   RECOMMENDATION: Install feedwater pump protection to prevent pump damage.
+
+10. Feedwater flow meter installed & working   [default priority: Medium]
+   FINDING: No feedwater flow meter installed / feedwater meter not working.
+   RECOMMENDATION: Install a feedwater flow meter (magnetic type recommended) for each boiler to monitor the amount of water used per boiler.
+
+11. Cabling to level switches / transmitters secure   [default priority: Medium]
+   FINDING: Cabling to feedwater pumps, level switches and/or transmitters is not secure and safe.
+   RECOMMENDATION: Cabling to feedwater pumps, level switches and/or transmitters should be secured and made safe.
+
+--- TDS & Blowdown (report 5.2 per boiler) ---
+
+12. Automatic TDS control installed & working   [default priority: High]
+   FINDING: Boiler does not have automatic TDS control / TDS system not working due to seized valves or faulty controller.
+   RECOMMENDATION: Automatic TDS controls and water sample coolers need to be installed/upgraded on the boiler. TDS levels must be maintained between 2500-3000 to prevent water carry-over to the process.
+
+13. TDS reading taken (record value)   [default priority: High]
+   FINDING: TDS measurement was extremely high, measured above specification with handheld tester.
+   RECOMMENDATION: Maintain TDS between 2500-3000 by correct blowdown and dosing. Record TDS and pH for each shift in the daily logbook.
+
+14. Sample cooler installed   [default priority: Medium]
+   FINDING: No water sample cooler installed on the boiler.
+   RECOMMENDATION: Install a water sample cooler for safe and accurate boiler water sampling.
+
+15. Blowdown valve condition & operation   [default priority: High]
+   FINDING: Boiler blowdown valve leaking / stiff / blowdown pipe blocked.
+   RECOMMENDATION: Repair/replace the blowdown valve. Blowdown valve flanges must be tight with effortless action.
+
+--- Valves & Mountings ---
+
+16. Safety valves condition (leaks / test records)   [default priority: High]
+   FINDING: Steam leak on safety valves / safety valve test records not available.
+   RECOMMENDATION: Replace or overhaul safety valves with steam leaks. Safety valves to be tested with the AIA inspector and documented.
+
+17. Main steam (crown) valve   [default priority: High]
+   FINDING: Steam leak on the crown valve.
+   RECOMMENDATION: Replace/repair the leaking crown valve as soon as possible.
+
+18. Feedwater isolating & check valves   [default priority: Medium]
+   FINDING: Feedwater valve / check (one-way) valve passing or seized.
+   RECOMMENDATION: Replace the feedwater isolating and check valves.
+
+19. Boiler pressure gauge   [default priority: Medium]
+   FINDING: Boiler pressure gauge faulty / not calibrated.
+   RECOMMENDATION: Replace the boiler pressure gauge with a newly calibrated pressure gauge.
+
+20. Pressure control instrumentation & safety pipework   [default priority: High]
+   FINDING: Copper pipes used for boiler safety instruments; does not comply with BS EN 12953. High pressure lock-out drifting from set calibration.
+   RECOMMENDATION: Replace copper instrument pipework to comply with BS EN 12953. Replace/recalibrate the high pressure safety lock-out and incorporate the pressure transducer onto the new pipework.
+
+21. Air release valve   [default priority: Low]
+   FINDING: Air release valve leaking / seized.
+   RECOMMENDATION: Repair/replace the air release valve.
+
+--- Boiler Mechanical & Maintenance (report 5.5) ---
+
+22. Fire tubes condition & cleaning interval   [default priority: Medium]
+   FINDING: Fire tubes blocked / not cleaned regularly, reducing heat transfer.
+   RECOMMENDATION: Fire tubes should be cleaned regularly, ideally every three to four months, to maintain optimum heat transfer and boiler efficiency.
+
+23. Refractory condition   [default priority: High]
+   FINDING: Refractory is cracked/damaged which leads to loss of heat and efficiency.
+   RECOMMENDATION: Repair/recast the damaged refractory.
+
+24. Smokebox doors, clamps & seals   [default priority: Medium]
+   FINDING: Smokebox door clamps/bolts missing; smokebox seals leaking.
+   RECOMMENDATION: Replace all missing smokebox door clamps/bolts and repair smokebox seals. Smokebox doors must be tight.
+
+25. Exit flue gas temperature gauge   [default priority: Medium]
+   FINDING: Exit flue gas temperature gauge not working; monitoring of blocked tubes and combustion efficiency not possible.
+   RECOMMENDATION: Replace the exit flue gas temperature gauge to monitor fire tube blockage and combustion efficiency.
+
+26. Boiler instrumentation calibration   [default priority: Medium]
+   FINDING: Boiler instrumentation not calibrated.
+   RECOMMENDATION: Calibrate or replace boiler instrumentation.
+
+27. Control panel condition   [default priority: High]
+   FINDING: Control panel switches, buttons and pilot lights damaged or not working; wiring loose with risk of electrocution.
+   RECOMMENDATION: Upgrade the panel with a new OEM automated control panel with HMI screen (and fan VSDs where applicable) compliant with pressure equipment regulations and EN boiler safety standards.
+
+28. Safety interlocks tested   [default priority: High]
+   FINDING: Safety interlocks could not be verified / not tested.
+   RECOMMENDATION: Yearly AIA safety inspections to be done: safety chain lockouts, low water alarm and lock-out, safety valves and E-stop to be tested and documented.
+
+29. Statutory / AIA inspection records   [default priority: Medium]
+   FINDING: The AIA hot commissioning report for the setting of safety limiters was not provided for review.
+   RECOMMENDATION: Provide AIA inspection and hot commissioning records. The boiler must be subjected to internal and external inspection annually as required by law.
+
+30. Maintenance schedules in place   [default priority: Medium]
+   FINDING: Weekly or monthly maintenance schedules could not be provided for review.
+   RECOMMENDATION: Implement daily, weekly and monthly maintenance schedules for the boiler plant, steam distribution and condensate recovery equipment, and record all maintenance.
+
+############################################################
+COAL / STOKER boilers
+############################################################
+
+--- Combustion — Stoker (report 6.3) ---
+
+31. Fuel analysis records available   [default priority: Medium]
+   FINDING: Fuel analysis records were not provided for review.
+   RECOMMENDATION: Perform a proximate analysis, a mineral ash analysis and ash fusion temperatures at least once per coal delivery. Ensure the volatile content of fuel is within specification.
+
+32. Combustion quality (red coals off stoker end?)   [default priority: High]
+   FINDING: Incomplete combustion of fuel was occurring with red coals being discharged off the end of the stoker.
+   RECOMMENDATION: Set up combustion controls, check undergrate air distribution and grate speed to ensure complete burnout before the end of the grate.
+
+33. Boiler maintains pressure setpoint?   [default priority: High]
+   FINDING: The boiler could not maintain the operating pressure setpoint.
+   RECOMMENDATION: Investigate combustion controls, fuel quality and heating surface fouling; restore automatic control of ID and FD fans.
+
+34. Stoker mat / links / link rods   [default priority: High]
+   FINDING: The stoker mat shows signs of overheating with damaged links and bent link rods; ends of link rods damaged with drifting rods and missing split pins.
+   RECOMMENDATION: Replace damaged links and link rods and fit split pins. Use OEM parts only.
+
+35. Grate tension   [default priority: High]
+   FINDING: The stoker mat could not be tensioned due to excessive wear on drive links.
+   RECOMMENDATION: Replace worn drive links; remove a link from the stoker chain and jack the motor to correct tension.
+
+36. Stoker level / frame condition   [default priority: Medium]
+   FINDING: The stoker needs to be levelled in the boiler; the stoker frame shows signs of distortion.
+   RECOMMENDATION: Level the stoker in the boiler and repair/replace the distorted frame sections.
+
+37. Guillotine door & castings   [default priority: Medium]
+   FINDING: Guillotine doors not level; guillotine castings/refractory damaged; door height not displayed / encoder faulty.
+   RECOMMENDATION: Repair guillotine doors and castings; replace the guillotine door level indicator/encoder.
+
+38. Ignition arch condition & seal   [default priority: Medium]
+   FINDING: Air leaks found on the ignition arch; ignition arch seal rope damaged.
+   RECOMMENDATION: Replace ignition arch seal rope and close air leaks to prevent cold air cooling the ignition arch.
+
+39. Draught pipework & furnace pressure control (Photohelic)   [default priority: High]
+   FINDING: Draught pipework to the ignition arch missing/damaged with no feedback to the Photohelic; no automatic control of ID and FD fans.
+   RECOMMENDATION: Repair draught pipework; replace the Photohelic with a Yokogawa pressure controller for automatic furnace pressure control.
+
+40. Swinging chute installed & working   [default priority: Medium]
+   FINDING: No swinging chute installed; air leaks from the coal hopper.
+   RECOMMENDATION: Install a swinging chute between the overhead fuel hopper and the stoker hopper. This also prevents air leaks at the coal hopper.
+
+41. Coal hopper & shut-off doors   [default priority: Medium]
+   FINDING: The stoker hoppers and shut-off doors need replacement; air leaks found on the coal hopper.
+   RECOMMENDATION: Replace stoker hoppers and shut-off doors; seal air leaks.
+
+42. Undergrate dampers & actuators   [default priority: Medium]
+   FINDING: Undergrate damper actuators not installed / not working.
+   RECOMMENDATION: Install/repair undergrate damper actuators for correct air distribution along the grate.
+
+43. Stoker drive (motor, chain, V-belts, cover)   [default priority: Medium]
+   FINDING: Stoker motor misaligned, chain loose and slipping, V-belts loose with slippage, no V-belt cover.
+   RECOMMENDATION: Align the stoker motor, tension the chain, replace and tension V-belts and install a V-belt cover.
+
+44. FD fan control   [default priority: Medium]
+   FINDING: FD fan actuator missing / damper control poor.
+   RECOMMENDATION: Install a VSD to control the FD fan speed instead of damper and actuator for better control of air flow.
+
+45. ID fan control   [default priority: Medium]
+   FINDING: ID damper actuator not working.
+   RECOMMENDATION: Install a VSD for ID fan speed control. VSDs give finer, more accurate control than actuator-driven dampers.
+
+46. O2 probe & analyser   [default priority: High]
+   FINDING: No O2 probe/analyser installed; monitoring of efficient combustion is not possible.
+   RECOMMENDATION: Install a Lamtec LT2 O2 analyser per furnace and reduce flue gas oxygen content by adjusting the fuel trim and automating combustion control.
+
+47. Temperature probes (ignition arch, rear roller, coal hopper)   [default priority: Medium]
+   FINDING: Ignition arch / rear roller / coal hopper temperature probes not installed or broken.
+   RECOMMENDATION: Install/replace the ignition arch, rear roller and coal hopper temperature probes.
+
+48. Spy holes & air leaks   [default priority: Low]
+   FINDING: Spy holes and air leaks around the stoker allow cold air in, cooling the ignition arch.
+   RECOMMENDATION: Close spy holes and air leaks around the stoker to prevent cold air cooling the ignition arch.
+
+49. Moisturising steam to coal   [default priority: Low]
+   FINDING: No moisturising steam introduced into the coal in the stoker hopper.
+   RECOMMENDATION: Introduce moisturising steam into the coal in the stoker hopper; this assists the fine fuel fraction to adhere and burn properly.
+
+--- Boiler Equipment — Stoker (report 7) ---
+
+50. Grit collector condition   [default priority: Medium]
+   FINDING: Grit collector blocked/dirty; internals worn; wedge plates not sealing on the grit trolley causing air ingress.
+   RECOMMENDATION: Clean out the grit collector, replace the internals and re-align the wedge plates so they seal tightly onto the grit trolley.
+
+51. Grit collector DP gauges   [default priority: Medium]
+   FINDING: The grit arrestor pressure drop cannot be monitored as differential pressure gauges are not installed.
+   RECOMMENDATION: Install differential pressure gauges on the grit collectors and boilers to indicate the level of blockage.
+
+52. Grit / ash trolleys & chute doors   [default priority: Medium]
+   FINDING: Grit trolleys, ash chute trolleys and ash chute doors damaged/leaking.
+   RECOMMENDATION: Repair and replace leaking/damaged ash chute doors, grit collector double flaps and trolleys.
+
+53. Sootblowers   [default priority: Medium]
+   FINDING: Sootblowers not working.
+   RECOMMENDATION: Repair sootblowers and operate per the maintenance schedule.
+
+54. Emission tests   [default priority: Low]
+   FINDING: Emission test records not available.
+   RECOMMENDATION: Emission tests to be completed.
+
+############################################################
+OIL / GAS BURNER boilers
+############################################################
+
+--- Fuel / HFO Handling — Burner (data entry + condition) ---
+
+55. DATA: Required fuel temperature at burner (spec)   [default priority: -]
+   FINDING: (entry field, deg C)
+   RECOMMENDATION: (no recommendation - data only)
+
+56. DATA: Required fuel pressure at burner (spec)   [default priority: -]
+   FINDING: (entry field, bar)
+   RECOMMENDATION: (no recommendation - data only)
+
+57. DATA: Fuel pump control type (dropdown: VSD / DOL / Ring main / Pressure regulator / Other)   [default priority: -]
+   FINDING: (entry field)
+   RECOMMENDATION: (no recommendation - data only)
+
+58. MEASURED: Actual fuel temperature at burner   [default priority: High]
+   FINDING: Actual fuel temperature measured at ___ deg C, outside the required specification, negatively affecting atomisation and combustion.
+   RECOMMENDATION: Repair/replace fuel heaters and heat tracing and restore the fuel temperature to specification for proper atomisation.
+
+59. MEASURED: Actual fuel pressure at burner   [default priority: High]
+   FINDING: Actual fuel pressure measured at ___ bar, outside the required specification, negatively affecting combustion stability.
+   RECOMMENDATION: Restore the fuel supply pressure to specification. Install/set a separate pressure regulator for the burner and keep the ring main at constant pressure.
+
+60. Fuel pump condition   [default priority: High]
+   FINDING: Fuel pump worn/leaking and requires attention.
+   RECOMMENDATION: Service or replace the fuel pump.
+
+61. Fuel pump VSD / motor control condition   [default priority: Medium]
+   FINDING: Fuel pump VSD/motor control faulty or not in use; pump running uncontrolled.
+   RECOMMENDATION: Repair or replace the VSD/motor control for stable fuel supply pressure and efficient pump operation.
+
+--- Combustion — Burner (report 6.3 / 7.3) ---
+
+62. Burner service records   [default priority: Medium]
+   FINDING: Records of the last burner service were not provided.
+   RECOMMENDATION: Maintain records of burner services and work done. A bi-annual burner service is recommended to run burners at optimal efficiency.
+
+63. Fuel/oil leaks at burner   [default priority: High]
+   FINDING: Leaking of HFO was observed at the burner / oil leaking into the cup on standby due to worn internal seals of the fuel block.
+   RECOMMENDATION: Overhaul the burner fuel block with a full service kit and seal all oil leaks on burners and oil lines to prevent energy loss, safety hazards and contamination.
+
+64. Atomiser cup condition & cleaning routine   [default priority: Medium]
+   FINDING: Burner cup not properly cleaned as needed (every start of shift).
+   RECOMMENDATION: Clean the atomiser cup at the start of every shift and include it in the operator duties.
+
+65. Atomiser V-belt (tension, alignment, wear)   [default priority: Medium]
+   FINDING: Atomiser belt comes off at start-up: belt tension too high and motor/atomiser pulleys misaligned.
+   RECOMMENDATION: Align motor and atomiser pulleys, set correct belt tension and keep a spare belt on site. Replace the belt if worn.
+
+66. Burner quarl / refractory   [default priority: High]
+   FINDING: Burner quarl/refractory cracked or worn.
+   RECOMMENDATION: Replace burner quarl/refractory at the next service (refractory bricks and cement available from John Thompson).
+
+67. Burner vanes, swirler & ducting   [default priority: Medium]
+   FINDING: Burner head air cone worn / vanes and ducting fouled.
+   RECOMMENDATION: Clean and inspect burner vanes, swirler cup and ducting; replace worn components.
+
+68. Primary air ducting & air leaks   [default priority: Medium]
+   FINDING: Primary air ducting leaking (temporarily sealed with tape); air leaks on ducting and smoke doors.
+   RECOMMENDATION: Repair all air leaks on ducting and smokebox doors to maintain proper combustion air control; replace ducting where required.
+
+69. Air damper linkages & actuators   [default priority: Medium]
+   FINDING: Primary/secondary air damper linkages loose or movement restricted.
+   RECOMMENDATION: Tighten and free up damper linkages so movement is clear and unrestricted; check actuator calibration.
+
+70. Ignition assembly (transformer, probe, cable, pilot)   [default priority: High]
+   FINDING: Ignition assembly damaged; gas pipe nozzle broken and temporarily repaired.
+   RECOMMENDATION: Replace the damaged ignition components; reroute cabling to minimise damage and wear.
+
+71. Flame scanner & controller   [default priority: High]
+   FINDING: Flame scanner failing / not detecting flame at low fire due to fuel quality, causing lockouts.
+   RECOMMENDATION: Clean/replace the flame scanner, tidy and reroute cabling, and address fuel quality to ensure reliable flame detection at low fire.
+
+72. Heat tracing on oil lines   [default priority: Medium]
+   FINDING: Heat tracing on burner oil lines damaged and not working.
+   RECOMMENDATION: Replace the heat tracing on the burner and ring main oil lines and insulate the oil lines properly.
+
+73. Minimum air pressure switch   [default priority: High]
+   FINDING: Minimum air pressure switch faulty / airline blocked.
+   RECOMMENDATION: Replace the minimum air pressure switch and clean/reroute the airline. Burner ignition must be prevented when air pressure is not present.
+
+74. Primary air differential pressure switch   [default priority: High]
+   FINDING: Primary air differential switch faulty / airlines blocked or damaged.
+   RECOMMENDATION: Replace the differential air pressure switch; the burner must lock out if the primary air chamber differential is not balanced at ignition.
+
+75. Burner door hinge limit switch   [default priority: High]
+   FINDING: Door hinge limit switch damaged; burner does not lock out when the door is opened.
+   RECOMMENDATION: Replace the door open limit switch so the burner locks out when the door is opened.
+
+76. Ring main pressure stability   [default priority: High]
+   FINDING: The ring main does not maintain constant pressure, negatively impacting combustion stability and burner efficiency.
+   RECOMMENDATION: Resolve oil pressure fluctuations in the ring main. Install a separate pressure regulator for the burner and keep the ring main at a constant pressure so operators need not adjust supply pressure when switching between boilers.
+
+77. O2 analyser & reference air pump   [default priority: High]
+   FINDING: No O2 analyser installed / reference air pump and filter defective, affecting accuracy of oxygen readings.
+   RECOMMENDATION: Install/replace the O2 analyser with a Lamtec LT2 KS1D-HT probe and control panel for improved combustion monitoring and control.
+
+78. Combustion test (O2 across load range)   [default priority: Medium]
+   FINDING: Flue gas oxygen content outside the optimal range.
+   RECOMMENDATION: Reduce the flue gas oxygen content to between 3% and 6% by adjusting the fuel/air ratio. Yearly combustion set-ups should be done for optimal combustion efficiency.
+
+79. Fuel flow meter   [default priority: Medium]
+   FINDING: No fuel flow meter installed / HFO flow meter not working; fuel consumption not recorded.
+   RECOMMENDATION: Install/replace the fuel flow meter to monitor and record fuel consumption.
+
+############################################################
+BIOMASS boilers
+############################################################
+
+--- Fuel Handling & Feeding — Biomass ---
+
+80. Fuel storage / bunker condition & housekeeping   [default priority: Medium]
+   FINDING: Fuel storage area untidy and fuel exposed to rain, increasing the moisture content of the fuel.
+   RECOMMENDATION: Store biomass fuel under cover and keep the storage area clean to control moisture content and fire risk.
+
+81. Fuel moisture & quality as fired   [default priority: High]
+   FINDING: Fuel moisture content is high and the fuel contains contaminants (sand, stones, metal), reducing combustion efficiency and damaging the grate.
+   RECOMMENDATION: Control fuel moisture (typically below 30-35% for grate firing) and screen out contaminants. Record fuel moisture daily.
+
+82. Fuel feeding system (screw / ram / conveyor)   [default priority: High]
+   FINDING: Fuel feeding system worn, blocking or feeding irregularly.
+   RECOMMENDATION: Repair the fuel feeding system and set up feed-rate control linked to steam demand.
+
+83. Metering bin / fuel level control   [default priority: Medium]
+   FINDING: Fuel level control in the metering bin is not working; fuel supply to the furnace is irregular.
+   RECOMMENDATION: Repair the metering bin level sensors and feed control.
+
+84. Burn-back / fire protection on fuel feed   [default priority: High]
+   FINDING: Burn-back protection not working or not installed, posing a fire risk in the fuel feed system.
+   RECOMMENDATION: Install or repair burn-back protection (rotary valve or double flap, feed chute temperature sensor and water quench) and test it regularly.
+
+--- Combustion — Biomass ---
+
+85. Grate type & condition (moving / reciprocating / fixed)   [default priority: High]
+   FINDING: Grate bars worn, warped or missing, causing an uneven fuel bed and poor air distribution.
+   RECOMMENDATION: Replace worn or damaged grate bars and restore correct grate movement and speed settings.
+
+86. Clinker / slag formation on grate   [default priority: Medium]
+   FINDING: Clinker formation on the grate is restricting combustion air.
+   RECOMMENDATION: Remove clinker; check the fuel ash content and furnace temperatures and adjust primary air and grate speed to prevent clinker forming.
+
+87. Primary & secondary air distribution / dampers   [default priority: High]
+   FINDING: Primary and secondary air dampers are not working or not controlled, resulting in incomplete combustion.
+   RECOMMENDATION: Repair the dampers and actuators and set up primary/secondary air distribution for complete combustion.
+
+88. Furnace refractory & ignition arch   [default priority: High]
+   FINDING: Furnace refractory is cracked or damaged.
+   RECOMMENDATION: Repair the damaged refractory.
+
+89. Furnace pressure control   [default priority: High]
+   FINDING: Furnace pressure is not controlled, with a risk of smoke and flame blow-back.
+   RECOMMENDATION: Repair the furnace pressure transmitter and ID fan control to maintain a slight negative furnace pressure.
+
+90. FD / ID fans & VSDs   [default priority: Medium]
+   FINDING: FD/ID fans are controlled by dampers only or the VSDs are faulty.
+   RECOMMENDATION: Install or repair VSDs on the FD and ID fans for accurate combustion air control.
+
+91. O2 analyser & combustion setting   [default priority: High]
+   FINDING: No O2 analyser installed; combustion efficiency cannot be monitored.
+   RECOMMENDATION: Install an O2 analyser and set combustion for the fuel fired (typically 6-8% O2 for biomass).
+
+92. Unburnt fuel in ash   [default priority: Medium]
+   FINDING: High unburnt fuel in the ash, indicating incomplete combustion.
+   RECOMMENDATION: Adjust grate speed, fuel bed depth and air distribution to reduce unburnt fuel in the ash.
+
+93. Furnace temperature probes   [default priority: Medium]
+   FINDING: Furnace temperature probes not installed or faulty.
+   RECOMMENDATION: Install or replace the furnace temperature probes.
+
+--- Ash Handling & Emissions — Biomass ---
+
+94. Ash removal system (screw / conveyor / wet ash)   [default priority: Medium]
+   FINDING: Ash removal system blocked, worn or leaking.
+   RECOMMENDATION: Repair the ash removal system and schedule regular cleaning.
+
+95. Grit arrestor / multi-cyclone   [default priority: Medium]
+   FINDING: Grit arrestor / multi-cyclone blocked or worn and the differential pressure is not monitored.
+   RECOMMENDATION: Clean the grit arrestor / multi-cyclone, replace worn internals and install differential pressure gauges.
+
+96. Spark arrestor / fire risk in flue path   [default priority: High]
+   FINDING: No spark arrestor; sparks are carried over into the flue path.
+   RECOMMENDATION: Install a spark arrestor upstream of any filter equipment to prevent fires.
+
+97. Visible stack emissions   [default priority: Medium]
+   FINDING: Visible smoke at the stack, indicating incomplete combustion.
+   RECOMMENDATION: Adjust combustion settings and complete emission testing.
+
+98. Sootblowers / heating surface cleaning   [default priority: Medium]
+   FINDING: Heating surfaces fouled and sootblowers not working.
+   RECOMMENDATION: Repair the sootblowers and clean the heating surfaces regularly.
+
+############################################################
+SITE-WIDE (answered once)
+############################################################
+
+--- Steam System Profiling (report 4) ---
+
+99. Steam distribution & operating pressures   [default priority: Medium]
+   FINDING: Operating pressure and distribution issues noted (describe).
+   RECOMMENDATION: Review steam system operating pressures and distribution; install shut-off valves on the main steam manifold where missing.
+
+--- Steam Traps (report 5.1) ---
+
+100. Steam traps installed & trap set composition   [default priority: Medium]
+   FINDING: The steam trap sets consist of only an isolation valve before the steam trap.
+   RECOMMENDATION: Each trap set should consist of: two isolation valves (one on either side), strainer before the trap, steam trap, sight glass and check valve.
+
+101. Traps passing steam?   [default priority: High]
+   FINDING: Most steam traps are functional but some are passing steam, seen from the feedwater storage tank overfilling and steam flow from the tank vent.
+   RECOMMENDATION: Carry out an in-house audit to determine whether the correct traps are selected and sized; replace damaged traps; set up and maintain a steam trap database; test traps at least once a year and record all maintenance.
+
+102. Condensate return pipework lagged?   [default priority: Medium]
+   FINDING: Condensate return pipework unlagged on some return lines.
+   RECOMMENDATION: All condensate return pipework should be lagged and clad and returned to the feedwater storage tank. Install bypass valves to allow contaminated condensate to be dumped.
+
+--- Water Treatment Plant (report 5.2 site) ---
+
+103. Water softener working?   [default priority: High]
+   FINDING: Make-up water is not being softened as the unit is not working.
+   RECOMMENDATION: Repair, replace or have your local supplier investigate the water softener units and chemical dosing. Customer to supply service report.
+
+104. Chemical dosing system   [default priority: High]
+   FINDING: Chemical dosing pumps installed but chemicals are not being introduced into the feedwater storage tank.
+   RECOMMENDATION: Restore chemical dosing. Regular inspection of the chemical drums is required and must be noted in the operator's logbook to prevent the boiler being operated without the required chemicals.
+
+105. Water treatment specialist visits & reports   [default priority: Medium]
+   FINDING: Water treatment service reports need to be supplied for review.
+   RECOMMENDATION: A local water treatment specialist must make regular visits to ensure operators and laboratory technicians maintain correct chemical dosing and boiler blowdown.
+
+106. TDS / pH recording practice   [default priority: Medium]
+   FINDING: TDS and pH are not measured and recorded daily.
+   RECOMMENDATION: TDS and pH levels must be recorded for each shift in the daily logbook.
+
+107. Chemical spillage / housekeeping   [default priority: Low]
+   FINDING: Chemical spillage present on feedwater storage tank and pipework.
+   RECOMMENDATION: Clean chemical spillage and repair the source; protect the tank and pipework from corrosion.
+
+108. Feedwater tank & hotwell condition   [default priority: Medium]
+   FINDING: Hotwell tank and pipework leaking and heavily rusted / feedwater temperature too high due to condensate return.
+   RECOMMENDATION: Repair/replace the hotwell tank and pipework; manage feedwater temperature to protect the feedwater pumps.
+
+--- Insulation (report 5.3) ---
+
+109. Steam pipework lagging (boiler house)   [default priority: Medium]
+   FINDING: Steam pipework inside the boiler house is damaged or missing lagging.
+   RECOMMENDATION: Repair all damaged lagging and cladding; lag all unlagged pipework inside the boiler house and the steam pipework to each process.
+
+110. Valves & flanges lagged?   [default priority: Medium]
+   FINDING: Valves and flanges inside the boiler house are unlagged.
+   RECOMMENDATION: Lag all valves and flanges inside the boiler house and between the boiler house and process plants.
+
+111. Feedwater tank & lines lagged?   [default priority: Low]
+   FINDING: Feedwater storage tank lagging shows spillage and wear; no cladding on feedwater lines.
+   RECOMMENDATION: Lag the feedwater tank and feedwater lines to the boiler.
+
+112. Condensate return lines lagged?   [default priority: Low]
+   FINDING: Condensate return pipework is unlagged on some return lines.
+   RECOMMENDATION: Lag the condensate return pipework.
+
+--- Steam Leaks (report 5.4 site) ---
+
+113. Steam/water leaks in boiler house & distribution   [default priority: High]
+   FINDING: The following steam leaks were noted: (list locations).
+   RECOMMENDATION: Replace and repair leaking valves and components as soon as steam and water leaks occur; repair pipework with steam leaks.
+
+--- Condensate Recovery (report 6.2) ---
+
+114. Condensate return percentage / system state   [default priority: High]
+   FINDING: There is 0% condensate return - a significant loss due to wasted water and heat not returned to the feedwater storage tank.
+   RECOMMENDATION: Automate and repair the condensate return system; check all steam traps to ensure they are not passing steam; install a meter for monitoring condensate return/loss to calculate the cost of steam production.
+
+--- Operator Duties (report 6.4 / 7.4) ---
+
+115. Logbook: 4-hourly recordings done?   [default priority: Medium]
+   FINDING: Operators do not record the required 4-hourly readings.
+   RECOMMENDATION: Record every 4 hours: boiler water TDS and pH; blowdown; feedwater TDS, pH, hardness, pressure and tank level; softener online; bags of salt added; brine tank level; stack smoke appearance; flue gas exit temperature.
+
+116. Shift checks (blowdowns, alarms)   [default priority: Medium]
+   FINDING: Shift blowdown checks of gauge glass and level controls not performed.
+   RECOMMENDATION: Blow down every shift to check the boiler trips and locks out at extra low water level; ensure operators measure and record all required readings.
+
+117. Operator training   [default priority: Medium]
+   FINDING: Operators not adequately trained on the equipment.
+   RECOMMENDATION: Operators must be trained to safely operate the equipment.
