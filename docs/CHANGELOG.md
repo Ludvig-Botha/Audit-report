@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1
+- Hosted on GitHub Pages: the repo link opens the app (root `index.html`), installs to the home screen and **works offline** after the first open (`app/manifest.json`, `app/sw.js`, icons).
+- New versions are picked up automatically when opened with signal.
+
 ## 5.0
 ### App
 - **Generate Word Report on the phone** — real JT template (cover, disclaimer, header/footer), no laptop or Python needed. Share straight to email/WhatsApp. Export ZIP kept alongside.

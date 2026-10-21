@@ -1,18 +1,33 @@
 # Setup Guide
 
+## Publish the app with GitHub Pages (once, by the maintainer)
+
+1. Push this repository to GitHub.
+2. Repo **Settings → Pages** → *Build and deployment* → Source **Deploy from a branch** → Branch **main**, folder **/ (root)** → **Save**.
+3. After a minute the page shows the address: `https://<github-username>.github.io/<repo-name>/`
+   That link opens the app directly. Send it to the engineers.
+
+> GitHub Pages is free for **public** repositories; a **private** repo needs a paid
+> GitHub plan (Pro/Team). A public repo means anyone with the link can see the
+> app, the question list and the JT report template — decide which suits the company.
+
+**Updates:** push a rebuilt `app/JT_Audit_Capture.html`. Phones pick up the new
+version automatically the next time the app is opened with signal (open it twice to see it).
+
 ## Phone app (every engineer)
 
-1. Copy `app/JT_Audit_Capture.html` to the phone.
-2. Open it in **Chrome** (Files app → tap the file → *Open with* → Chrome).
-3. Chrome menu (⋮) → **Add to Home screen**.
+1. Open the GitHub Pages link in **Chrome**.
+2. Chrome menu (⋮) → **Add to Home screen** / **Install app**.
+3. Open it once with signal — from then on it works offline.
 4. In the app: **My details** → your name and job title.
 
-That's all. Reports are generated on the phone with **Generate Report → Generate Word Report**.
+Never open the app from the GitHub repository page itself — GitHub shows the code, it does not run it.
 
-**Updating to a new version:** before replacing the app file, open each unfinished
-report → *Generate Report* → **Export ZIP**, and *Questions & lists* → **Export**.
-Install the new file, then **Import job (ZIP)** and **Import** the questions.
-(If the new file opens with your reports already there, nothing needs importing.)
+Reports made in a copy opened as a file (WhatsApp/Downloads) are stored separately
+from the hosted app. To move them: old copy → *Generate Report* → **Export ZIP**;
+hosted app → **Import job (ZIP)**. Same for questions: *Questions & lists* → **Export** / **Import**.
+
+That's all. Reports are generated on the phone with **Generate Report → Generate Word Report**.
 
 ## Laptop generator (optional)
 

@@ -16,10 +16,14 @@ No laptop, no Python, no internet.
 ## For engineers — using the app
 
 **Install (once)**
-1. Get `JT_Audit_Capture.html` onto the phone (WhatsApp, email, USB).
-2. Open it with **Chrome** (Files → tap the file → open with Chrome).
-3. Chrome menu → **Add to Home screen**.
-4. Open the app → **My details** → enter your name and job title (printed on the cover as "Prepared by").
+1. Open the app link in **Chrome**: `https://<github-username>.github.io/<repo-name>/`
+   (the repo is published with GitHub Pages — see docs/SETUP.md).
+2. Chrome menu (⋮) → **Add to Home screen** / **Install app**.
+3. Open it once while you have signal — after that it opens **without signal** too.
+4. **My details** → enter your name and job title (printed on the cover as "Prepared by").
+
+Do **not** open the file from the GitHub repo page — GitHub only shows the code, it doesn't run it.
+(Without hosting, the `.html` file can also be sent by WhatsApp/email and opened in Chrome.)
 
 **Doing an audit**
 1. **+ New Report** → customer, report number, date, distribution list.
@@ -82,7 +86,9 @@ Engineers can also edit questions on their own phone (**Questions & lists**) and
 ## Repository layout
 
 ```
+index.html                     sends the GitHub Pages link straight to the app
 app/JT_Audit_Capture.html      the app (built - this is what goes on phones)
+app/manifest.json, sw.js, icon-*.png   home-screen install + offline support
 app/src/app_template.html      app source
 app/src/questions.json         built-in question library
 generator/generate_report.py   laptop generator

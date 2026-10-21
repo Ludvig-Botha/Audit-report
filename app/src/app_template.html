@@ -942,6 +942,15 @@ zipFile.onchange=async e=>{ const f=e.target.files[0]; zipFile.value=""; if(!f)r
 function importPick(){ zipFile.click(); }
 
 /* =====================================================================
+   OFFLINE (only when hosted on https, e.g. GitHub Pages - ignored for a local file)
+   ===================================================================== */
+if(location.protocol==="https:"||location.hostname==="localhost"){
+  const l=document.createElement("link"); l.rel="manifest"; l.href="manifest.json"; document.head.appendChild(l);
+  const ic=document.createElement("link"); ic.rel="apple-touch-icon"; ic.href="icon-192.png"; document.head.appendChild(ic);
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
+/* =====================================================================
    BOOT
    ===================================================================== */
 idb().then(loadSettings).then(loadLib).then(loadLists).then(home)
