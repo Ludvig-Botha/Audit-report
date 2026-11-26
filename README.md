@@ -22,6 +22,8 @@ No laptop, no Python, no internet.
 3. Open it once while you have signal — after that it opens **without signal** too.
 4. **My details** → enter your name and job title (printed on the cover as "Prepared by").
 
+**Getting a colleague set up:** *My details & share app* shows a QR code. They scan it with the phone camera, open the link in Chrome and add it to the home screen.
+
 Do **not** open the file from the GitHub repo page — GitHub only shows the code, it doesn't run it.
 (Without hosting, the `.html` file can also be sent by WhatsApp/email and opened in Chrome.)
 

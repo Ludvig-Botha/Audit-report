@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.4.1
+- **Share the app:** *My details & share app* shows a QR code of the app link, plus **Send link** and **Copy link** buttons. Another engineer scans it with the phone camera, opens it in Chrome and adds it to the home screen. Works offline (the code is stored in the app).
+- `tools/make_qr.py` regenerates the QR code if the app's web address ever changes.
+
 ## 5.4
 ### App
 - **OneDrive: Save / Open on any device.** Sign in once (Home > **OneDrive**) with
