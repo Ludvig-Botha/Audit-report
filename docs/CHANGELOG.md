@@ -1,5 +1,38 @@
 # Changelog
 
+## 5.4
+### App
+- **OneDrive: Save / Open on any device.** Sign in once (Home > **OneDrive**) with
+  the same Microsoft account and Azure Client ID as the FSO app. On this device
+  the Client ID is copied from the FSO app automatically, and an existing FSO app
+  sign-in is reused.
+  - Report menu > **Save to OneDrive** uploads the report to
+    `OneDrive > JT Audit > reports > <id>` (report.json + one file per photo)
+    and lists it in `reports/index.json`.
+  - Home > **Open from OneDrive** lists every saved report with its state:
+    *not on this device*, *newer on OneDrive*, *changed here*, *up to date*.
+    Tap to open; photos you already have are not downloaded again.
+  - **Photos upload on Wi-Fi only.** On mobile data the app asks: upload now,
+    or save the report text and let the photos go up by themselves the next
+    time the device is on Wi-Fi with the app open. "Upload photos now" on the
+    report forces it. Downloads on mobile data ask first too.
+  - **No silent overwrites.** Saving over a OneDrive copy that another device
+    saved after this one last synced asks first; opening over local changes
+    that are not on OneDrive asks first.
+  - Photos deleted on a device are removed from OneDrive on its next save.
+    Deleting a report in the app keeps the OneDrive copy; delete that from the
+    Open from OneDrive list.
+  - Photos over 4 MB use a resumable upload session.
+- **Questions & lists > OneDrive**: Save / Load the question library and
+  suggestion lists (`JT Audit/library.json`), same checks as Import.
+- The Microsoft sign-in library is loaded only when needed and pinned with a
+  Subresource Integrity hash. Scopes: Files.ReadWrite, User.Read.
+
+### Setup (once)
+- Azure portal > App registrations > the FSO app's registration >
+  Authentication > Single-page application > add the audit app's address as a
+  Redirect URI (shown in the app under Home > OneDrive).
+
 ## 5.3
 ### Report
 - **Photos sit with their question.** Every question is its own block: question title, data (equipment / measured value), Finding, Recommendation, then that question's photos, 2 side by side (~6 cm). The block is kept together with its first row of photos.

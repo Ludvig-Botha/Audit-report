@@ -37,6 +37,12 @@ Do **not** open the file from the GitHub repo page — GitHub only shows the cod
 4. **Site-Wide Questions & Fuel** - the **fuel** (type, analysis, photos), fuel handling and ring main, water treatment, steam traps, insulation, operators. Then **Scope of Work & Work Done**.
 5. **Generate Report** → **Generate Word Report**. The `.docx` lands in Downloads; **Share report** sends it straight to email/WhatsApp. **Export ZIP** is still there for the laptop or for moving a job to another phone (**Import job (ZIP)** on the home screen).
 
+**Phone and laptop (OneDrive)**
+- Once: Home → **OneDrive** → sign in with the same Microsoft account as the FSO app (see docs/SETUP.md for the one-off Azure step).
+- On the device you worked on: open the report → **Save to OneDrive**. On mobile data the photos wait for Wi-Fi unless you say "upload now".
+- On the other device: Home → **Open from OneDrive** → tap the report.
+- Questions & lists: **Questions & lists → OneDrive → Save** on one device, **Load** on the other.
+
 In the report each photo is printed directly under its question, captioned with the finding. Answer the question first, then take the photo:
 every photo is also saved to Downloads as `Category_Finding_B1_Customer_yymmdd_01.jpg` as a backup.
 
