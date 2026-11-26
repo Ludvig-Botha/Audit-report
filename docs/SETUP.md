@@ -14,6 +14,21 @@
 **Updates:** push a rebuilt `app/JT_Audit_Capture.html`. Phones pick up the new
 version automatically the next time the app is opened with signal (open it twice to see it).
 
+## OneDrive sync (once, by the maintainer)
+
+The app signs in with the **same Azure app registration as the FSO app**.
+
+1. Open the audit app → Home → **OneDrive**. Copy the *Redirect URI* shown there
+   (e.g. `https://ludvig-botha.github.io/Audit-report/app/JT_Audit_Capture.html`).
+2. Azure portal → **App registrations** → the FSO app → **Authentication** →
+   *Single-page application* → **Add URI** → paste it exactly → **Save**.
+   The address must match character for character (including capital letters),
+   so add each address you open the app from.
+3. In the app: the Client ID is filled in from the FSO app on the same device;
+   otherwise paste it (FSO app → Settings → OneDrive Sync). Tap **Sign in to OneDrive**.
+
+Files live in the signed-in user's OneDrive under **JT Audit**.
+
 ## Phone app (every engineer)
 
 1. Open the GitHub Pages link in **Chrome**.

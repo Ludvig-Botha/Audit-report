@@ -298,6 +298,7 @@ async function home(){ stack.length=0; stack.push([home,[]]); job=null;
   let h="";
   if(!SETTINGS.name) h+=`<div class="warnbox"><b>First time?</b> Enter your name and job title under <b>My details</b>. They are printed on the report cover as "Prepared by".</div>`;
   h+='<button class="btn big wide" onclick="newJob()">+ New Report</button>';
+  h+='<button class="btn sec wide" onclick="go(cloudList)">&#9729; Open from OneDrive</button>';
   h+=jobs.map(j=>`<div class="list-item tap" onclick="openJob('${j.id}')">
     <div class="grow"><div class="title">${esc(j.customer&&j.customer.name)||"(no customer name)"}</div>
     <div class="sub">${esc(j.customer&&j.customer.reportNo)||"no report no."} &middot; ${(j.boilers||[]).length} boiler(s) &middot; ${new Date(j.updated).toLocaleDateString()}${j.imported?" &middot; imported":""}</div></div>
@@ -305,6 +306,7 @@ async function home(){ stack.length=0; stack.push([home,[]]); job=null;
   if(!jobs.length) h+='<p class="hint center">No reports yet. Tap + New Report to start.</p>';
   h+=`<div class="card"><h2>More</h2>
     <button class="btn sec" onclick="go(settingsView)">&#128100; My details</button>
+    <button class="btn sec" onclick="go(cloudView)">&#9729; OneDrive${cloudAcct?" (signed in)":""}</button>
     <button class="btn sec" onclick="importPick()">&#128229; Import job (ZIP)</button>
     <button class="btn sec" onclick="go(libHome)">&#9998; Questions &amp; lists</button>
     <p class="hint">Version ${esc(APP_VER)}</p></div>`;
@@ -376,10 +378,12 @@ function jobMenu(_k){
   const sw=job.scope.requested.filter(x=>x.trim()).length, wd=job.scope.done.filter(x=>x.trim()).length;
   h+=`<div class="card tap" onclick="go(workView)"><h2>4. Scope of Work &amp; Work Done</h2><div class="sub">${sw} requested &middot; ${wd} done</div></div>`;
   h+=`<div class="card tap" style="border:2px solid var(--jt)" onclick="go(generateView)"><h2>5. Generate Report</h2><div class="sub">Word report on this phone, or ZIP for the laptop</div></div>`;
+  h+=`<div id="cloudBox"></div>`;
   h+=`<button class="btn warn small" onclick="delJob()">Delete this report</button>`;
   screen(job.customer.name||"Report",h,null,_k);
+  cloudCard().then(x=>{ const e=$("cloudBox"); if(e) e.innerHTML=x; }).catch(e=>console.warn(e));
 }
-async function delJob(){ if(!confirm("Delete this whole report and its photos from the app?"))return;
+async function delJob(){ if(!confirm("Delete this whole report and its photos from the app?"+(job.cloud?"\n\n(The copy on OneDrive is kept - delete it under Open from OneDrive.)":"")))return;
   const ph=await photosOf(job.id); for(const p of ph) await del("photos",p.id);
   await del("jobs",job.id); home(); }
 
@@ -677,6 +681,11 @@ function libHome(_k){
    <div class="row"><button class="btn sec small" onclick="libExport()">Export</button>
    <button class="btn sec small" onclick="libImportPick()">Import</button></div>
    <button class="btn warn small" onclick="libReset()">Reset questions to built-in</button></div>`;
+  h+=`<div class="card"><h2>&#9729; OneDrive</h2>
+   <p class="hint">Keep the same questions and suggestion lists on your phone and laptop. Save on the device where you made changes, then Load on the other one.</p>
+   <div class="row"><button class="btn small" onclick="cloudSaveLib()">Save to OneDrive</button>
+   <button class="btn sec small" onclick="cloudLoadLib()">Load from OneDrive</button></div>
+   <div class="status" id="libCloud"></div></div>`;
   screen("Questions & lists",h,null,_k); }
 function libPart(part,_k){
   let h=LIB[part].map((sec,si)=>`<div class="list-item tap" onclick="go(libSection,'${part}',${si})">
@@ -736,12 +745,15 @@ function libExport(){ download(new Blob([JSON.stringify({lib:LIB,lists:LISTS},nu
 const libFile=document.createElement("input"); libFile.type="file"; libFile.accept=".json,application/json,text/plain";
 libFile.onchange=async e=>{ const f=e.target.files[0]; if(!f)return;
   try{ let v=JSON.parse(await f.text()); let lists=null; if(v.lib){ lists=v.lists; v=v.lib; }
-    if(!v.shared||!v.site) throw new Error("this is not a question library file");
-    PARTS.forEach(([p])=>{ if(!v[p]) v[p]=seedPart(p);
-      v[p].forEach(s=>{ s.id=s.id||"s"+uid(); s.items.forEach(it=>{ it.id=it.id||"q"+uid(); it.t=it.t||tagOf(it.q); it.d=it.d||"check"; }); }); });
-    if((v._v||0)<QS_VER) upgradeQS(v); LIB=v; await saveLib(); if(lists){ LISTS=lists; await loadListsFix(); }
+    await applyLibrary(v,lists);
     alert("Questions imported."); rerender();
   }catch(err){ alert("Import failed: "+err.message); } libFile.value=""; };
+async function applyLibrary(v,lists){
+  if(!v||!v.shared||!v.site) throw new Error("this is not a question library file");
+  PARTS.forEach(([p])=>{ if(!v[p]) v[p]=seedPart(p);
+    v[p].forEach(s=>{ s.id=s.id||"s"+uid(); s.items.forEach(it=>{ it.id=it.id||"q"+uid(); it.t=it.t||tagOf(it.q); it.d=it.d||"check"; }); }); });
+  if((v._v||0)<QS_VER) upgradeQS(v); LIB=v; await saveLib(); if(lists){ LISTS=lists; await loadListsFix(); }
+}
 async function loadListsFix(){ LISTS.fuel=LISTS.fuel||{}; ["coal","oil","biomass"].forEach(c=>LISTS.fuel[c]=LISTS.fuel[c]||[]); LISTS.extras=LISTS.extras||{}; LISTS.sug=LISTS.sug||{}; await saveLists(); }
 function libImportPick(){ libFile.click(); }
 async function libReset(){ if(!confirm("Replace your edited questions with the built-in questions? (Saved lists are kept.)"))return;
@@ -1125,6 +1137,264 @@ zipFile.onchange=async e=>{ const f=e.target.files[0]; zipFile.value=""; if(!f)r
 function importPick(){ zipFile.click(); }
 
 /* =====================================================================
+   ONEDRIVE (5.4) — manual "Save to OneDrive" / "Open from OneDrive".
+   Same Microsoft sign-in as the FSO app (same Azure Client ID, same
+   github.io origin, so an existing FSO sign-in is reused silently).
+   Layout in the signed-in user's OneDrive:
+     JT Audit/library.json                    questions + suggestion lists
+     JT Audit/reports/index.json              list shown under "Open from OneDrive"
+     JT Audit/reports/<jobId>/report.json     the report (no photo bytes)
+     JT Audit/reports/<jobId>/photos/<id>.jpg one file per photo
+   Photos only upload on Wi-Fi unless the engineer says "upload now"
+   on mobile data; waiting photos go up by themselves once on Wi-Fi.
+   ===================================================================== */
+const MSAL_SRC="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.18.0/lib/msal-browser.min.js";
+const MSAL_SRI="sha384-QBA+VxDY+Z8Frcz3oXcumRktHmg8ho2te4V7RBWyGkc44FBa0NJRv6AKqvWpLRrX";
+const GRAPH="https://graph.microsoft.com/v1.0";
+const CLOUD_ROOT="JT Audit";
+const CLOUD_SCOPES=["Files.ReadWrite","User.Read"];
+let CLOUD={clientId:""}, msalApp=null, cloudAcct=null, cloudBusy=false;
+
+async function loadCloudCfg(){
+  CLOUD=await kvGet("cloud",{clientId:""});
+  if(!CLOUD.clientId){ // same github.io origin as the FSO app: offer its Client ID
+    try{ const f=JSON.parse(localStorage.getItem("fso_pwa_v1")||"null");
+      const id=f&&f.settings&&f.settings.oneDrive&&f.settings.oneDrive.clientId;
+      if(id&&/^[0-9a-f-]{36}$/i.test(id)){ CLOUD.clientId=id; CLOUD.fromFso=true; await kvPut("cloud",CLOUD); } }catch(e){}
+  }
+}
+const isCellular=()=>{ const c=navigator.connection; return !!(c&&c.type==="cellular"); };
+const isOnline=()=>navigator.onLine!==false;
+const isStandalone=()=>(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+const redirectUri=()=>location.origin+location.pathname;
+const mb=n=>(n/1048576).toFixed(1)+" MB";
+
+function loadMsal(){ if(window.msal) return Promise.resolve();
+  return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=MSAL_SRC; s.integrity=MSAL_SRI; s.crossOrigin="anonymous";
+    s.onload=()=>res(); s.onerror=()=>rej(new Error("Could not load the Microsoft sign-in library - check your connection"));
+    document.head.appendChild(s); }); }
+async function cloudInit(){
+  if(msalApp) return true;
+  if(!CLOUD.clientId) return false;
+  await loadMsal();
+  msalApp=new msal.PublicClientApplication({auth:{clientId:CLOUD.clientId,authority:"https://login.microsoftonline.com/consumers",redirectUri:redirectUri()},
+    cache:{cacheLocation:"localStorage"}});
+  await msalApp.initialize();
+  try{ const r=await msalApp.handleRedirectPromise(); if(r&&r.account) cloudAcct=r.account; }catch(e){ console.warn("redirect",e); }
+  if(!cloudAcct){ const a=msalApp.getAllAccounts(); if(a.length) cloudAcct=a[0]; }
+  return true;
+}
+// interactive=false: never send the engineer to a sign-in page (background uploads)
+async function cloudToken(interactive){
+  if(!await cloudInit()) throw new Error("Set up OneDrive first (Home > OneDrive)");
+  if(!cloudAcct){ if(!interactive) throw new Error("Not signed in");
+    if(isStandalone()){ await msalApp.loginRedirect({scopes:CLOUD_SCOPES}); throw new Error("Opening Microsoft sign-in..."); }
+    const r=await msalApp.loginPopup({scopes:CLOUD_SCOPES}); cloudAcct=r.account; }
+  try{ return (await msalApp.acquireTokenSilent({scopes:CLOUD_SCOPES,account:cloudAcct})).accessToken; }
+  catch(e){ if(!interactive) throw e;
+    if(isStandalone()){ await msalApp.acquireTokenRedirect({scopes:CLOUD_SCOPES,account:cloudAcct}); throw new Error("Opening Microsoft sign-in..."); }
+    return (await msalApp.acquireTokenPopup({scopes:CLOUD_SCOPES,account:cloudAcct})).accessToken; }
+}
+// Graph path for "JT Audit/<segments>" — every segment encoded
+const cp=(...seg)=>"/me/drive/root:/"+[CLOUD_ROOT,...seg].map(encodeURIComponent).join("/");
+async function gx(method,path,o){ o=o||{};
+  const h=Object.assign({Authorization:"Bearer "+await cloudToken(o.interactive!==false)},o.headers||{});
+  let body=o.body; if(o.json!==undefined){ h["Content-Type"]="application/json"; body=JSON.stringify(o.json); }
+  const r=await fetch(GRAPH+path,{method,headers:h,body});
+  if(!r.ok){ if(o.okMissing&&r.status===404) return null;
+    let m=""; try{ const j=await r.json(); m=(j.error&&(j.error.code+": "+j.error.message))||""; }catch(e){}
+    const e=new Error("OneDrive "+r.status+(m?" - "+m:"")); e.status=r.status; throw e; }
+  if(o.blob) return r.blob();
+  if(r.status===204) return null;
+  const ct=r.headers.get("content-type")||""; return ct.includes("json")?r.json():r.text();
+}
+async function getJson(...seg){ const t=await gx("GET",cp(...seg)+":/content",{okMissing:true});
+  return t==null?null:(typeof t==="string"?JSON.parse(t):t); }
+const putJson=(obj,...seg)=>gx("PUT",cp(...seg)+":/content",{body:new TextEncoder().encode(JSON.stringify(obj)),headers:{"Content-Type":"application/json"}});
+async function putBlob(blob,o,...seg){ // simple PUT up to 4 MB, upload session above that
+  if(blob.size<=4*1048576) return gx("PUT",cp(...seg)+":/content",{body:blob,headers:{"Content-Type":blob.type||"image/jpeg"},interactive:o.interactive});
+  const s=await gx("POST",cp(...seg)+":/createUploadSession",{json:{item:{"@microsoft.graph.conflictBehavior":"replace"}},interactive:o.interactive});
+  const CH=32*327680; // 10 MiB, a multiple of 320 KiB
+  for(let i=0;i<blob.size;i+=CH){ const end=Math.min(i+CH,blob.size);
+    const r=await fetch(s.uploadUrl,{method:"PUT",headers:{"Content-Range":`bytes ${i}-${end-1}/${blob.size}`},body:blob.slice(i,end)});
+    if(!r.ok&&r.status!==202) throw new Error("OneDrive upload failed ("+r.status+")"); }
+}
+async function rmCloud(...seg){ try{ await gx("DELETE",cp(...seg),{okMissing:true}); }catch(e){ console.warn("delete",seg,e); } }
+
+/* ---------- OneDrive settings screen ---------- */
+function cloudView(_k){
+  const signed=!!cloudAcct;
+  screen("OneDrive",`<div class="card"><h2>Microsoft account</h2>
+   <p class="hint">Reports are saved to <b>OneDrive &gt; ${CLOUD_ROOT}</b> and can be opened on your other phone or laptop. Nothing is uploaded until you tap <b>Save to OneDrive</b> on a report.</p>
+   <div class="okline" style="${signed?"":"display:none"}">Signed in as <b>${esc(cloudAcct&&cloudAcct.username)}</b></div>
+   ${signed?`<button class="btn sec" onclick="cloudSignOut()">Sign out</button>`:`<button class="btn" onclick="cloudSignIn()">Sign in to OneDrive</button>`}</div>
+  <div class="card"><h2>Azure Client ID</h2>
+   <p class="hint">Use the <b>same Client ID as the FSO app</b> (FSO app: Settings &gt; OneDrive Sync).${CLOUD.fromFso?" It was copied from the FSO app on this device.":""}</p>
+   <input type="text" id="c_cid" value="${esc(CLOUD.clientId)}" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocapitalize="off" spellcheck="false">
+   <button class="btn small" onclick="cloudSaveCid()">Save Client ID</button>
+   <label>Redirect URI to add in Azure (once)</label>
+   <input type="text" readonly value="${esc(redirectUri())}" onclick="this.select()">
+   <p class="hint">In the Azure portal: App registrations &gt; the FSO app &gt; Authentication &gt; <b>Single-page application</b> &gt; Add URI &gt; paste this address exactly &gt; Save. Do it for each address you open the app from.</p></div>`,null,_k); }
+async function cloudSaveCid(){ const v=$("c_cid").value.trim();
+  if(v&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)){ alert("That doesn't look like a Client ID (8-4-4-4-12 letters/numbers)."); return; }
+  CLOUD={clientId:v}; await kvPut("cloud",CLOUD); msalApp=null; cloudAcct=null; alert("Client ID saved."); rerender(); }
+async function cloudSignIn(){ if(!isOnline()){ alert("You are offline."); return; }
+  try{ await cloudToken(true); rerender(); }catch(e){ if(!/Opening Microsoft/.test(e.message)) alert("Sign-in failed: "+e.message); } }
+async function cloudSignOut(){ if(!confirm("Sign out of OneDrive in this app?\n(If the FSO app on this device uses the same account, it is signed out too.)"))return;
+  try{ await cloudInit(); if(cloudAcct) await msalApp.clearCache({account:cloudAcct}); }catch(e){} cloudAcct=null; rerender(); }
+
+/* ---------- Report status line (job menu) ---------- */
+async function cloudCard(){
+  const ph=await photosOf(job.id), waiting=ph.filter(p=>!p.cloudUp);
+  const c=job.cloud; let line;
+  if(!c) line="Not on OneDrive yet.";
+  else { line="Saved to OneDrive "+new Date(c.at).toLocaleString()+".";
+    if(job.updated>c.localAt) line+=" <b>Changed since then.</b>"; }
+  if(c&&waiting.length) line+=` ${waiting.length} photo(s) waiting for Wi-Fi.`;
+  return `<div class="card"><h2>&#9729; OneDrive</h2><div class="sub" id="cloudLine">${line}</div>
+    <button class="btn" onclick="cloudSaveJob()">Save to OneDrive</button>
+    ${c&&waiting.length?`<button class="btn sec small" onclick="cloudSaveJob(true)">Upload photos now</button>`:""}
+    <div class="status" id="cloudStatus"></div></div>`; }
+const cst=t=>{ const e=$("cloudStatus"); if(e) e.innerHTML=t; };
+
+function photoMeta(p){ return {id:p.id,scope:p.scope,tag:p.tag,qid:p.qid||"",label:p.label||"",include:!!p.include,caption:p.caption||"",
+  filename:p.filename||"",created:p.created||0,type:(p.blob&&p.blob.type)||"image/jpeg",size:(p.blob&&p.blob.size)||0,up:!!p.cloudUp}; }
+function cleanJob(J){ const c=JSON.parse(JSON.stringify(J)); delete c.cloud; return c; }
+
+/* ---------- Save to OneDrive ---------- */
+async function cloudSaveJob(forcePhotos){
+  if(cloudBusy) return; if(!isOnline()){ alert("You are offline - save to OneDrive when you have signal."); return; }
+  cloudBusy=true;
+  try{ await saveJob(); cst("Checking OneDrive...");
+    const cloud=await getJson("reports",job.id,"report.json");
+    if(cloud&&(!job.cloud||cloud.savedAt>job.cloud.at)&&
+       !confirm(`The OneDrive copy of this report was saved ${new Date(cloud.savedAt).toLocaleString()} from another device, after this device last synced it.\n\nReplace it with THIS device's version?\n\n(Cancel = change nothing. Use "Open from OneDrive" on the home screen to get the other version.)`)){ cst("Nothing changed."); return; }
+    const ph=await photosOf(job.id), pend=ph.filter(p=>!p.cloudUp);
+    let up=pend.length>0&&(!isCellular()||forcePhotos===true);
+    if(pend.length&&isCellular()&&forcePhotos!==true)
+      up=confirm(`You are on mobile data.\n\nUpload ${pend.length} photo(s) (${mb(pend.reduce((s,p)=>s+(p.blob?p.blob.size:0),0))}) now?\n\nOK = upload now.\nCancel = save the report text now, photos go up by themselves on Wi-Fi.`);
+    if(up) await uploadPhotos(job.id,pend,true,(i,n)=>cst(`Uploading photo ${i} of ${n}...`));
+    const keep=new Set(ph.map(p=>p.id));
+    if(cloud&&Array.isArray(cloud.photos)) for(const p of cloud.photos) if(!keep.has(p.id)) await rmCloud("reports",job.id,"photos",p.id+".jpg");
+    cst("Saving report...");
+    const savedAt=Date.now(), now=await photosOf(job.id);
+    await putJson({format:"jt-audit-cloud",v:1,app:APP_VER,schema:QS_VER,savedAt,job:cleanJob(job),photos:now.map(photoMeta)},"reports",job.id,"report.json");
+    await indexSet(job.id,{customer:job.customer.name||"",reportNo:job.customer.reportNo||"",date:job.customer.date||"",
+      boilers:job.boilers.length,photos:now.length,savedAt});
+    job.cloud={at:savedAt,localAt:job.updated}; await put("jobs",job);
+    const left=now.filter(p=>!p.cloudUp).length;
+    cst("&#10004; Saved to OneDrive."+(left?` ${left} photo(s) will upload on Wi-Fi.`:""));
+    setTimeout(()=>{ if(stack.length&&stack[stack.length-1][0]===jobMenu) rerender(); },1500);
+  }catch(e){ cst(/Opening Microsoft/.test(e.message)?"Opening Microsoft sign-in...":"Save failed: "+esc(e.message)); }
+  finally{ cloudBusy=false; }
+}
+async function uploadPhotos(jobId,list,interactive,prog){ let i=0;
+  for(const p of list){ prog&&prog(++i,list.length);
+    if(!p.blob) continue;
+    await putBlob(p.blob,{interactive},"reports",jobId,"photos",p.id+".jpg");
+    p.cloudUp=true; await put("photos",p); } }
+async function indexSet(id,entry){ const ix=(await getJson("reports","index.json"))||{v:1,reports:{}};
+  ix.reports=ix.reports||{}; if(entry) ix.reports[id]=entry; else delete ix.reports[id]; await putJson(ix,"reports","index.json"); }
+
+// Photos left waiting go up on their own once on Wi-Fi (silent; never prompts for sign-in)
+async function cloudFlush(){
+  if(cloudBusy||!isOnline()||isCellular()||!CLOUD.clientId) return;
+  const jobs=(await all("jobs")).filter(j=>j.cloud); if(!jobs.length) return;
+  cloudBusy=true;
+  try{ for(const J of jobs){ const pend=(await photosOf(J.id)).filter(p=>!p.cloudUp); if(!pend.length) continue;
+      if(!await cloudInit()||!cloudAcct) return;
+      await uploadPhotos(J.id,pend,false);
+      const cloud=await getJson("reports",J.id,"report.json"); // mark them uploaded in the cloud copy
+      if(cloud&&Array.isArray(cloud.photos)){ const ids=new Set(pend.map(p=>p.id)); cloud.photos.forEach(p=>{ if(ids.has(p.id)) p.up=true; });
+        await putJson(cloud,"reports",J.id,"report.json"); } }
+  }catch(e){ console.warn("photo upload",e); }
+  finally{ cloudBusy=false; }
+}
+
+/* ---------- Open from OneDrive ---------- */
+async function cloudList(_k){
+  screen("Open from OneDrive",'<div class="card"><div class="status" id="cl">Loading the list from OneDrive...</div></div>',null,_k);
+  if(!isOnline()){ $("cl").textContent="You are offline."; return; }
+  try{ let ix=await getJson("reports","index.json");
+    const rows=Object.entries((ix&&ix.reports)||{}).sort((a,b)=>b[1].savedAt-a[1].savedAt);
+    const local={}; (await all("jobs")).forEach(j=>local[j.id]=j);
+    if(!rows.length){ $("cl").innerHTML="No reports on OneDrive yet. Open a report and tap <b>Save to OneDrive</b>."; return; }
+    $("view").innerHTML=`<p class="hint">Reports saved to OneDrive from any of your devices. Tap one to open it here.</p>`+rows.map(([id,r])=>{
+      const L=local[id]; let b='<span class="badge">not on this device</span>';
+      if(L){ if(L.cloud&&L.cloud.at>=r.savedAt) b=L.updated>L.cloud.localAt?'<span class="badge part">changed here</span>':'<span class="badge done">up to date</span>';
+             else b='<span class="badge part">newer on OneDrive</span>'; }
+      return `<div class="list-item"><div class="grow tap" onclick="cloudOpen('${esc(id)}')"><div class="title">${esc(r.customer)||"(no customer name)"}</div>
+        <div class="sub">${esc(r.reportNo)||"no report no."} &middot; ${r.boilers||0} boiler(s) &middot; ${r.photos||0} photo(s) &middot; saved ${new Date(r.savedAt).toLocaleString()}</div>
+        <div style="margin-top:6px">${b}</div></div>
+        <button class="btn sec small" title="Delete from OneDrive" onclick="cloudDelete('${esc(id)}')">&#128465;</button></div>`; }).join("")+
+      '<div class="status" id="cloudStatus"></div>';
+  }catch(e){ const el=$("cl"); if(el) el.textContent=/Opening Microsoft/.test(e.message)?"Opening Microsoft sign-in...":"Could not load: "+e.message; }
+}
+async function cloudOpen(id){
+  if(cloudBusy) return; if(!/^[A-Za-z0-9]+$/.test(id)){ alert("Invalid report id"); return; }
+  cloudBusy=true;
+  try{ cst("Downloading report...");
+    const c=await getJson("reports",id,"report.json"); if(!c||!c.job) throw new Error("report.json not found on OneDrive");
+    const L=await get("jobs",id);
+    if(L&&(!L.cloud||L.updated>L.cloud.localAt)&&
+       !confirm("This device has changes to this report that are not on OneDrive.\n\nReplace them with the OneDrive copy?")){ cst(""); return; }
+    const mine=await photosOf(id), have=new Map(mine.map(p=>[p.id,p]));
+    const list=(c.photos||[]).filter(p=>p&&/^[A-Za-z0-9]+$/.test(String(p.id)));
+    const need=list.filter(p=>p.up&&!have.has(p.id));
+    if(need.length&&isCellular()&&!confirm(`You are on mobile data.\n\nDownload ${need.length} photo(s) (${mb(need.reduce((s,p)=>s+(p.size||0),0))}) now?`)){ cst("Cancelled - open it again on Wi-Fi."); return; }
+    let i=0;
+    for(const p of need){ cst(`Downloading photo ${++i} of ${need.length}...`);
+      const blob=await gx("GET",cp("reports",id,"photos",p.id+".jpg")+":/content",{blob:true,okMissing:true}); if(!blob) continue;
+      have.set(p.id,{id:p.id,jobId:id,blob:new Blob([blob],{type:p.type||"image/jpeg"})}); }
+    const wanted=new Set(list.map(p=>p.id));
+    for(const p of mine) if(!wanted.has(p.id)) await del("photos",p.id);
+    for(const p of list){ const r=have.get(p.id); if(!r||!r.blob) continue;
+      await put("photos",{id:p.id,jobId:id,scope:p.scope,tag:p.tag,qid:p.qid||"",label:p.label||"",include:p.include!==false,
+        caption:p.caption||"",filename:p.filename||"",blob:r.blob,created:p.created||Date.now(),cloudUp:true}); }
+    const J=fixJob(Object.assign(c.job,{id})); const t=Date.now(); J.updated=t; J.cloud={at:c.savedAt,localAt:t};
+    await put("jobs",J);
+    const missing=list.filter(p=>!p.up).length;
+    if(missing) alert(`${missing} photo(s) of this report haven't been uploaded from the other device yet (it is waiting for Wi-Fi). Open it again later to get them.`);
+    cloudBusy=false; stack.length=1; await openJob(id);
+  }catch(e){ cst(/Opening Microsoft/.test(e.message)?"Opening Microsoft sign-in...":"Open failed: "+esc(e.message)); }
+  finally{ cloudBusy=false; }
+}
+async function cloudDelete(id){
+  if(!/^[A-Za-z0-9]+$/.test(id)) return;
+  if(!confirm("Delete this report and its photos from OneDrive?\n\nThe copy on this device (if any) is NOT deleted."))return;
+  try{ cst("Deleting..."); await rmCloud("reports",id); await indexSet(id,null);
+    const L=await get("jobs",id); if(L&&L.cloud){ delete L.cloud; await put("jobs",L); }
+    for(const p of await photosOf(id)) if(p.cloudUp){ p.cloudUp=false; await put("photos",p); }
+    rerender(); }catch(e){ cst("Delete failed: "+esc(e.message)); }
+}
+
+/* ---------- Questions & lists ---------- */
+async function cloudSaveLib(){ if(!isOnline()){ alert("You are offline."); return; }
+  const st=$("libCloud"); st.textContent="Saving...";
+  try{ await putJson({format:"jt-audit-library",v:1,savedAt:Date.now(),lib:LIB,lists:LISTS},"library.json");
+    st.innerHTML="&#10004; Questions &amp; lists saved to OneDrive."; }
+  catch(e){ st.textContent=/Opening Microsoft/.test(e.message)?"Opening Microsoft sign-in...":"Save failed: "+e.message; } }
+async function cloudLoadLib(){ if(!isOnline()){ alert("You are offline."); return; }
+  const st=$("libCloud"); st.textContent="Loading...";
+  try{ const v=await getJson("library.json"); if(!v||!v.lib) throw new Error("no questions saved on OneDrive yet");
+    if(!confirm(`Replace this device's questions and lists with the OneDrive copy saved ${new Date(v.savedAt).toLocaleString()}?`)){ st.textContent=""; return; }
+    await applyLibrary(v.lib,v.lists); st.innerHTML="&#10004; Loaded from OneDrive."; }
+  catch(e){ st.textContent=/Opening Microsoft/.test(e.message)?"Opening Microsoft sign-in...":"Load failed: "+e.message; } }
+
+/* ---------- start-up ---------- */
+async function cloudBoot(){
+  await loadCloudCfg();
+  // back from the Microsoft sign-in page, or already signed in (e.g. via the FSO app)
+  const back=/[#&?](code|error)=/.test(location.hash+location.search);
+  if(CLOUD.clientId&&(back||isOnline())){ try{ await cloudInit(); }catch(e){ console.warn("cloud init",e); } }
+  if(back&&cloudAcct) setTimeout(()=>alert("Signed in to OneDrive as "+cloudAcct.username),300);
+  const kick=()=>setTimeout(cloudFlush,2000);
+  window.addEventListener("online",kick);
+  if(navigator.connection&&navigator.connection.addEventListener) navigator.connection.addEventListener("change",kick);
+  kick();
+}
+
+/* =====================================================================
    OFFLINE (only when hosted on https, e.g. GitHub Pages - ignored for a local file)
    ===================================================================== */
 if(location.protocol==="https:"||location.hostname==="localhost"){
@@ -1136,7 +1406,7 @@ if(location.protocol==="https:"||location.hostname==="localhost"){
 /* =====================================================================
    BOOT
    ===================================================================== */
-idb().then(loadSettings).then(loadLib).then(loadLists).then(home)
+idb().then(loadSettings).then(loadLib).then(loadLists).then(home).then(()=>cloudBoot().catch(e=>console.warn("cloud",e)))
   .catch(e=>{ $("view").innerHTML='<div class="card">Storage error: '+esc(e&&e.message||String(e))+'</div>'; });
 </script>
 </body>

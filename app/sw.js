@@ -1,7 +1,7 @@
 /* JT Boiler Audit - offline support for the hosted (GitHub Pages) app.
    Serves the app from the phone's cache so it opens with no signal, and
    quietly fetches the latest version in the background whenever online. */
-const CACHE = "jt-audit-v1";
+const CACHE = "jt-audit-v2";
 const FILES = ["./JT_Audit_Capture.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
