@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.3.1
+- **Share the app:** *My details & share app* shows a QR code of the app link, plus **Send link** and **Copy link** buttons. Another engineer scans it with the phone camera, opens it in Chrome and adds it to the home screen. Works offline (the code is stored in the app).
+- `tools/make_qr.py` regenerates the QR code if the app's web address ever changes.
+
 ## 5.3
 ### Report
 - **Photos sit with their question.** Every question is its own block: question title, data (equipment / measured value), Finding, Recommendation, then that question's photos, 2 side by side (~6 cm). The block is kept together with its first row of photos.

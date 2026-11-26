@@ -75,6 +75,9 @@ h3.q{font-size:16px;margin:4px 0 2px}
 .warnbox{background:#fff4e5;border:1px solid #f5c58a;border-radius:8px;padding:10px;font-size:13px;margin-top:8px}
 .dist{display:flex;gap:6px;margin-top:6px}
 .dist input{flex:1}
+.qrbox{width:240px;max-width:80%;margin:10px auto;padding:8px;background:#fff;border:1px solid var(--line);border-radius:10px}
+.qrbox svg{display:block;width:100%;height:auto}
+.applink{font-size:13px;color:var(--jt);word-break:break-all;margin:4px 0 6px}
 select.sug{margin-top:2px;margin-bottom:6px;background:#eef3f9;border:1px dashed #b7c6da;color:var(--jt);font-size:13.5px}
 .okline{margin-top:10px;background:#eaf5ea;border:1px solid #cfe6d0;border-radius:8px;padding:9px 10px;font-size:13.5px;color:#1b5e20}
 </style>
@@ -90,6 +93,8 @@ const APP_VER = /*VER*/;
 const QDB = /*QDB*/;
 const BP = /*BP*/;
 const TPL = /*TPL*/;
+const SHARE_QR = /*QR*/;
+const APP_URL = /*URL*/;
 
 /* =====================================================================
    STORAGE (IndexedDB) — same database as earlier versions, so existing
@@ -304,7 +309,7 @@ async function home(){ stack.length=0; stack.push([home,[]]); job=null;
     <span class="badge">open</span></div>`).join("");
   if(!jobs.length) h+='<p class="hint center">No reports yet. Tap + New Report to start.</p>';
   h+=`<div class="card"><h2>More</h2>
-    <button class="btn sec" onclick="go(settingsView)">&#128100; My details</button>
+    <button class="btn sec" onclick="go(settingsView)">&#128100; My details &amp; share app</button>
     <button class="btn sec" onclick="importPick()">&#128229; Import job (ZIP)</button>
     <button class="btn sec" onclick="go(libHome)">&#9998; Questions &amp; lists</button>
     <p class="hint">Version ${esc(APP_VER)}</p></div>`;
@@ -315,8 +320,19 @@ function settingsView(){ const s=SETTINGS;
    <label>Your name</label><input type="text" id="s_name" value="${esc(s.name)}">
    <label>Job title</label><input type="text" id="s_title" value="${esc(s.title)}">
    <label>Email</label><input type="email" id="s_email" value="${esc(s.email)}">
-   <label>Phone</label><input type="text" id="s_phone" value="${esc(s.phone)}"></div>`,
+   <label>Phone</label><input type="text" id="s_phone" value="${esc(s.phone)}"></div>
+  <div class="card center"><h2>&#128241; Share the app with another engineer</h2>
+   <p class="hint">Let them scan this with their phone camera, open the link in <b>Chrome</b>, then tap &#8942; &rarr; <b>Add to Home screen</b>.</p>
+   <div class="qrbox">${SHARE_QR}</div>
+   <div class="applink">${esc(APP_URL)}</div>
+   <div class="row" style="justify-content:center"><button class="btn sec small" onclick="shareApp()">&#128228; Send link</button>
+   <button class="btn sec small" onclick="copyApp(this)">&#128203; Copy link</button></div>
+   <p class="hint">Works without signal &mdash; the code is stored in the app.</p></div>`,
   `<button class="btn" onclick="saveSettings()">Save</button>`); }
+async function shareApp(){ const d={title:"JT Boiler Audit app",text:"JT Boiler Audit app - open in Chrome, then Add to Home screen:",url:APP_URL};
+  if(navigator.share){ try{ await navigator.share(d); }catch(e){} } else copyApp(); }
+async function copyApp(btn){ try{ await navigator.clipboard.writeText(APP_URL); if(btn) btn.textContent="Copied"; }
+  catch(e){ prompt("Copy this link:",APP_URL); } }
 async function saveSettings(){ ["name","title","email","phone"].forEach(k=>SETTINGS[k]=$("s_"+k).value.trim());
   await kvPut("settings",SETTINGS); back(); }
 

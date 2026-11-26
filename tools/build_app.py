@@ -7,6 +7,7 @@ build_app.py - builds the single-file phone app.
 Reads
     app/src/app_template.html        app source with /*QDB*/ /*BP*/ /*TPL*/ /*VER*/ slots
     app/src/questions.json           built-in question library
+    app/src/share_qr.svg, share_url.txt  QR code + link shown under My details (tools/make_qr.py)
     generator/boilerplate.json       standard report wording (shared with the laptop generator)
     generator/JT_Report_Template.docx  the JT Word template (prepared by generator/template_prep.py)
 Writes
@@ -24,6 +25,8 @@ def main():
     src = open(os.path.join(ROOT, "app", "src", "app_template.html"), encoding="utf-8").read()
     qdb = json.load(open(os.path.join(ROOT, "app", "src", "questions.json"), encoding="utf-8"))
     bp = json.load(open(os.path.join(ROOT, "generator", "boilerplate.json"), encoding="utf-8"))
+    qr_svg = open(os.path.join(ROOT, "app", "src", "share_qr.svg"), encoding="utf-8").read().strip()
+    app_url = open(os.path.join(ROOT, "app", "src", "share_url.txt"), encoding="utf-8").read().strip()
     prep = template_prep.prepare(os.path.join(ROOT, "generator", "JT_Report_Template.docx"))
 
     files = {}
@@ -38,8 +41,9 @@ def main():
         return json.dumps(obj, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 
     out = (src.replace("/*VER*/", js(ver)).replace("/*QDB*/", js(qdb))
-              .replace("/*BP*/", js(bp)).replace("/*TPL*/", js(tpl)))
-    for slot in ("/*VER*/", "/*QDB*/", "/*BP*/", "/*TPL*/"):
+              .replace("/*BP*/", js(bp)).replace("/*TPL*/", js(tpl))
+              .replace("/*QR*/", js(qr_svg)).replace("/*URL*/", js(app_url)))
+    for slot in ("/*VER*/", "/*QDB*/", "/*BP*/", "/*TPL*/", "/*QR*/", "/*URL*/"):
         assert slot not in out, slot
     dest = os.path.join(ROOT, "app", "JT_Audit_Capture.html")
     open(dest, "w", encoding="utf-8").write(out)
