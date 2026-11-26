@@ -75,6 +75,8 @@ h3.q{font-size:16px;margin:4px 0 2px}
 .warnbox{background:#fff4e5;border:1px solid #f5c58a;border-radius:8px;padding:10px;font-size:13px;margin-top:8px}
 .dist{display:flex;gap:6px;margin-top:6px}
 .dist input{flex:1}
+select.sug{margin-top:2px;margin-bottom:6px;background:#eef3f9;border:1px dashed #b7c6da;color:var(--jt);font-size:13.5px}
+.okline{margin-top:10px;background:#eaf5ea;border:1px solid #cfe6d0;border-radius:8px;padding:9px 10px;font-size:13.5px;color:#1b5e20}
 </style>
 </head>
 <body>
@@ -143,17 +145,51 @@ const FUEL_CAT_LABEL={coal:"Coal",oil:"Oil / gas",biomass:"Biomass"};
    ===================================================================== */
 let LIB=null, LISTS=null, SETTINGS=null;
 const PARTS=[["shared","Shared (all boilers)"],["stoker","Coal / stoker"],["burner","Oil / gas burner"],["biomass","Biomass"],["site","Site-wide"]];
-function seedPart(part){ return (QDB[part]||[]).map((s,si)=>({id:`b_${part}_${si}`,section:s.section,
-  items:s.items.map((it,qi)=>Object.assign({},it,{id:`b_${part}_${si}_${qi}`}))})); }
-function seedLib(){ const L={}; PARTS.forEach(([p])=>L[p]=seedPart(p)); L._v=5; return L; }
+const QS_VER=6;
+function seedPart(part){ return JSON.parse(JSON.stringify(QDB[part]||[])).map((s,si)=>{ s.id=s.id||`b_${part}_${si}`;
+  s.items.forEach((it,qi)=>{ it.id=it.id||`${s.id}_${qi}`; }); return s; }); }
+function seedLib(){ const L={}; PARTS.forEach(([p])=>L[p]=seedPart(p)); L._v=QS_VER; return L; }
+const seedSec=id=>{ for(const [p] of PARTS) for(const s of QDB[p]||[]) if(s.id===id) return JSON.parse(JSON.stringify(s)); return null; };
+/* Brings a question set from any earlier app version to the current layout (same logic as upgrade_qs in generate_report.py):
+   fuel handling / ring main -> site-wide, combustion test split into load points, renames, priorities default to N/A. */
+function upgradeQS(qs){ const info={ct:null};
+  PARTS.forEach(([p])=>{ qs[p]=qs[p]||[]; });
+  const seedByQ={}; PARTS.forEach(([p])=>(QDB[p]||[]).forEach(s=>s.items.forEach(it=>{ seedByQ[it.q]=it; })));
+  const take=(part,re)=>{ const out=[]; qs[part].forEach(s=>{ s.items=s.items.filter(it=>{ if(re.test(it.q)){ out.push(it); return false; } return true; }); }); return out; };
+  [["Minimum air pressure switch","Secondary air pressure switch"],["Primary air differential pressure switch","Primary air pressure switch"]].forEach(([o,n])=>
+    qs.burner.forEach(s=>s.items.forEach(it=>{ if(it.q===o){ it.q=n; const d=seedByQ[n]; if(d&&!it.fs&&!it.rs){ it.f=d.f; it.r=d.r; } } })));
+  const front=[];
+  const siteSec=(id,re)=>{ let x=qs.site.find(z=>z.id===id||re.test(z.section)); if(!x){ const d=seedSec(id); x={id,section:d.section,fir:d.fir,items:[]}; }
+    if(!front.includes(x)) front.push(x); return x; };
+  const fi=qs.burner.findIndex(s=>/^Fuel \/ HFO Handling/i.test(s.section));
+  const ring=take("burner",/^(Ring ?main|Heat tracing on oil lines)/i);
+  if(fi>=0||ring.length){ let fh;
+    if(fi>=0){ fh=qs.burner.splice(fi,1)[0]; fh.id=fh.id||"b_burner_0"; fh.section="Fuel / HFO Handling & Ring Main"; front.push(fh); }
+    else fh=siteSec("b_burner_0",/^Fuel \/ HFO Handling/i);
+    fh.fir="burner"; fh.items.push(...ring);
+    fh.items.forEach(it=>{ if(/^(DATA|MEASURED): /.test(it.q)) it.q=it.q.replace(" at burner (spec)"," (spec)").replace(/ at burner$/,""); }); }
+  const coal=take("stoker",/^Fuel analysis records available/i);
+  if(coal.length){ const x=siteSec("b_site_fuelcoal",/^Fuel Storage & Handling — Coal/i); x.fir="stoker"; x.items.push(...coal); }
+  const bio=take("biomass",/^(Fuel storage|Fuel moisture)/i);
+  if(bio.length){ const x=siteSec("b_site_fuelbio",/^Fuel Storage & Handling — Biomass/i); x.fir="biomass"; x.items.push(...bio); }
+  qs.biomass.forEach(s=>{ if(/^Fuel Handling & Feeding/i.test(s.section)) s.section="Fuel Feeding — Biomass"; });
+  qs.site=front.concat(qs.site.filter(x=>!front.includes(x)));
+  let at=-1;
+  qs.burner.forEach((s,i)=>{ const k=s.items.findIndex(it=>/^Combustion test/i.test(it.q)); if(k>=0){ info.ct={id:s.items[k].id,t:s.items[k].t}; s.items.splice(k,1); at=i; } });
+  if(!qs.burner.some(s=>s.id==="b_burner_ct"||/^Combustion Test/.test(s.section))){
+    if(at<0) at=qs.burner.findIndex(s=>/^Combustion/i.test(s.section));
+    qs.burner.splice(at<0?qs.burner.length:at+1,0,seedSec("b_burner_ct")); }
+  PARTS.forEach(([p])=>qs[p].forEach(s=>{ s.id=s.id||"s"+uid(); s.items.forEach(it=>{ it.id=it.id||"q"+uid(); it.p="N/A"; it.d=it.d||"check"; it.t=it.t||tagOf(it.q);
+    if(!it.ok&&it.d!=="data"){ const d=seedByQ[it.q]; if(d&&d.ok) it.ok=d.ok; } }); }));
+  qs._v=QS_VER; return info; }
 async function loadLib(){
   const v=await kvGet("lib",null);
   if(!v){ LIB=seedLib(); await saveLib(); return; }
   LIB=v; let changed=false;
   PARTS.forEach(([p])=>{ if(!LIB[p]){ LIB[p]=seedPart(p); changed=true; } });
-  if(!LIB._v||LIB._v<5){ // fuel type is now on the Fuel form, not a burner question
-    LIB.burner.forEach(s=>{ const n=s.items.length; s.items=s.items.filter(it=>!/^DATA: Fuel type used/.test(it.q)); if(s.items.length!==n) changed=true; });
-    LIB._v=5; changed=true; }
+  if(!LIB._v||LIB._v<5){ // fuel type is on the Fuel form, not a burner question
+    LIB.burner.forEach(s=>{ s.items=s.items.filter(it=>!/^DATA: Fuel type used/.test(it.q)); }); LIB._v=5; changed=true; }
+  if(LIB._v<QS_VER){ upgradeQS(LIB); changed=true; }
   if(changed) await saveLib();
 }
 function saveLib(){ return kvPut("lib",LIB); }
@@ -165,7 +201,7 @@ const DEFAULT_LISTS={
           "Bag filter":["Filter bags condition","Differential pressure across bags","Pulse-jet cleaning / compressed air supply","Hopper, rotary valve & dust discharge","High temperature protection / bypass","Visible emissions at stack"]}};
 async function loadLists(){ LISTS=await kvGet("lists",null);
   if(!LISTS){ LISTS=JSON.parse(JSON.stringify(DEFAULT_LISTS)); await kvPut("lists",LISTS); }
-  LISTS.fuel=LISTS.fuel||{}; ["coal","oil","biomass"].forEach(c=>LISTS.fuel[c]=LISTS.fuel[c]||[]); LISTS.extras=LISTS.extras||{}; }
+  LISTS.fuel=LISTS.fuel||{}; ["coal","oil","biomass"].forEach(c=>LISTS.fuel[c]=LISTS.fuel[c]||[]); LISTS.extras=LISTS.extras||{}; LISTS.sug=LISTS.sug||{}; }
 const saveLists=()=>kvPut("lists",LISTS);
 function rememberFuel(cat,name){ name=(name||"").trim(); if(!name)return; const l=LISTS.fuel[cat];
   if(!l.some(x=>x.toLowerCase()===name.toLowerCase())){ l.push(name); saveLists(); } }
@@ -186,13 +222,51 @@ function fixJob(j){
   const c=j.customer=j.customer||{};
   if(!Array.isArray(c.dist)){ c.dist=String(c.emails||"").split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean).map(e=>({name:e,email:e})); }
   if(!j.prepared) j.prepared={name:(SETTINGS&&SETTINGS.name)||"",title:(SETTINGS&&SETTINGS.title)||""};
-  j.boilers.forEach(b=>{ if(!b.fuel||typeof b.fuel!=="object") b.fuel={type:typeof b.fuel==="string"?b.fuel:""}; b.extras=b.extras||[]; if(!FIRING[b.firing]) b.firing="burner"; });
+  j.fuels=j.fuels||[];
+  j.boilers.forEach(b=>{ if(typeof b.fuel==="string") b.fuel={type:b.fuel}; b.extras=b.extras||[]; if(!FIRING[b.firing]) b.firing="burner"; });
   return j;
 }
+/* Brings a job captured with an earlier version to the current layout (same logic as upgrade_job in generate_report.py).
+   photos = the job's photo records; returns the records that were changed. */
+const PRANK={High:3,Medium:2,Low:1};
+function mergeAns(answers,key,a,note){ const t=answers[key]; const has=x=>x&&(x.s||x.v||x.f||x.r||x.e);
+  if(!has(a)) return; if(!has(t)){ answers[key]=a; return; }
+  if(a.s==="Defect"||!t.s) t.s=a.s||t.s;
+  ["f","r"].forEach(k=>{ if(a[k]&&!String(t[k]||"").includes(a[k])) t[k]=(t[k]?t[k]+"\n":"")+a[k]; });
+  if(a.f) t.fAuto=false; if(!t.v) t.v=a.v; if(!t.e) t.e=a.e;
+  if((PRANK[a.p]||0)>(PRANK[t.p]||0)) t.p=a.p; }
+function upgradeJob(J,photos){ photos=photos||[]; const changed=new Set();
+  const ctOld=["b_burner_1_16"], ctOldTag=["CombustionTest"];
+  if(J.qs&&(J.qs._v||0)<QS_VER){ const info=upgradeQS(J.qs); if(info.ct){ ctOld.push(info.ct.id); ctOldTag.push(info.ct.t); } }
+  const qs=J.qs||LIB; const siteIt={}, siteTag={}; (qs.site||[]).forEach(s=>s.items.forEach(it=>{ siteIt[it.id]=it; siteTag[it.t]=it; }));
+  J.fuels=J.fuels||[]; let fn=J.fuels.length;
+  J.boilers.forEach(b=>{ const set=setOfB(qs,b); const own=new Set(), ownTag=new Set(); set.forEach(s=>s.items.forEach(it=>{ own.add(it.id); ownTag.add(it.t); }));
+    const ctSec=set.find(s=>s.inline&&/combustion test/i.test(s.section)); const ctNew=ctSec&&ctSec.items[0];
+    Object.keys(J.answers).forEach(k=>{ if(!k.startsWith(b.id+"|")) return; const qid=k.slice(b.id.length+1); if(own.has(qid)) return;
+      if(siteIt[qid]){ mergeAns(J.answers,"site|"+qid,J.answers[k]); delete J.answers[k]; }
+      else if(ctNew&&ctOld.includes(qid)){ mergeAns(J.answers,b.id+"|"+ctNew.id,J.answers[k]); delete J.answers[k]; } });
+    photos.forEach(p=>{ if(p.scope!==b.id||ownTag.has(p.tag)) return;
+      if(ctNew&&ctOldTag.includes(p.tag)){ p.tag=ctNew.t; p.qid=ctNew.id; changed.add(p); }
+      else if(siteTag[p.tag]){ p.scope="site"; p.qid=siteTag[p.tag].id; changed.add(p); } });
+    const bf=b.fuel;
+    if(bf&&typeof bf==="object"){ const cat=(FIRING[b.firing]||FIRING.burner).fuel; let f=null;
+      const mk=()=>{ f={id:"f"+(++fn)+uid().slice(-4),cat,type:""}; J.fuels.push(f); return f; };
+      if(Object.keys(bf).some(k=>k!=="typeOther"&&bf[k])){
+        f=J.fuels.find(x=>x.cat===cat&&String(x.type||"").toLowerCase()===String(bf.type||"").toLowerCase());
+        if(!f) mk(); Object.keys(bf).forEach(k=>{ if(k!=="id"&&k!=="cat"&&!f[k]) f[k]=bf[k]; }); b.fuelId=f.id; }
+      photos.forEach(p=>{ if(p.scope===b.id&&FUEL_PHOTOS.some(x=>x[0]===p.tag)){ if(!f) mk(); p.scope="site"; p.tag=p.tag+"_"+f.id; p.label=""; changed.add(p); } });
+      delete b.fuel; } });
+  J.schema=QS_VER; return [...changed]; }
+const setOfB=(qs,b)=>(qs.shared||[]).concat(qs[(FIRING[b.firing]||FIRING.burner).part]||[]);
+const fuelsOf=(J,b)=>(J.fuels||[]).filter(f=>f.cat===(FIRING[b.firing]||FIRING.burner).fuel);
+function boilerFuel(J,b){ const fs=fuelsOf(J,b).filter(f=>f.type); const pick=fs.find(f=>f.id===b.fuelId); return pick?pick.type:fs.map(f=>f.type).join(" / "); }
+function ensureFuels(){ let ch=false; [...new Set(job.boilers.map(b=>firingOf(b).fuel))].forEach(c=>{
+  if(!job.fuels.some(f=>f.cat===c)){ job.fuels.push({id:"f"+uid(),cat:c,type:""}); ch=true; } }); return ch; }
 const QS=()=>job.qs||LIB;
 const boilerOf=id=>job.boilers.find(x=>x.id===id);
-function setFor(scope){ const q=QS(); if(scope==="site") return q.site||[]; const b=boilerOf(scope);
-  return (q.shared||[]).concat(q[firingOf(b).part]||[]); }
+function setFor(scope){ const q=QS(); if(scope!=="site") return setOfB(q,boilerOf(scope));
+  // fuel sections only show when the site has that kind of boiler (or was already answered)
+  return (q.site||[]).filter(s=>!s.fir||job.boilers.some(b=>b.firing===s.fir)||s.items.some(it=>{ const a=job.answers["site|"+it.id]; return a&&(a.s||a.v); })); }
 const qKey=(scope,qid)=>scope+"|"+qid;
 function ans(scope,qid){ const k=qKey(scope,qid); if(!job.answers[k]) job.answers[k]={s:"",f:"",r:"",p:"",v:"",e:""}; return job.answers[k]; }
 const answered=(it,a)=>!!(a&&(a.s||((it.d==="data")&&a.v)));
@@ -250,9 +324,11 @@ async function newJob(){
   job=fixJob({id:uid(),created:Date.now(),updated:Date.now(),
     customer:{name:"",site:"",address:"",contact:"",phone:"",reportNo:"",date:new Date().toISOString().slice(0,10),
       dist:SETTINGS.name?[{name:SETTINGS.name,email:SETTINGS.email||""}]:[]},
-    prepared:{name:SETTINGS.name,title:SETTINGS.title},boilers:[],answers:{}});
+    prepared:{name:SETTINGS.name,title:SETTINGS.title},boilers:[],answers:{},fuels:[],schema:QS_VER});
   await saveJob(); go(custView); }
-async function openJob(id){ job=fixJob(await get("jobs",id)); go(jobMenu); }
+async function openJob(id){ job=fixJob(await get("jobs",id));
+  if((job.schema||5)<QS_VER){ for(const p of upgradeJob(job,await photosOf(job.id))) await put("photos",p); await saveJob(); }
+  go(jobMenu); }
 
 /* =====================================================================
    CUSTOMER
@@ -291,11 +367,11 @@ function jobMenu(_k){
   job.boilers.forEach(b=>{ const [d,t]=counts(b.id);
     h+=`<div class="list-item tap" onclick="go(boilerMenu,'${b.id}')">
       <div class="grow"><div class="title">Boiler ${esc(b.no)} ${b.make?"- "+esc(b.make):""}</div>
-      <div class="sub">${esc(firingOf(b).short)}${b.fuel.type?" &middot; "+esc(b.fuel.type):""} &middot; ${esc(b.model)||"model?"}</div></div>
+      <div class="sub">${esc(firingOf(b).short)}${boilerFuel(job,b)?" &middot; "+esc(boilerFuel(job,b)):""} &middot; ${esc(b.model)||"model?"}</div></div>
       <span class="badge ${d===t&&t?"done":(d?"part":"")}">${d}/${t}</span></div>`; });
   h+=`<button class="btn sec" onclick="addBoiler()">+ Add Boiler</button></div>`;
   const [sd,st]=counts("site");
-  h+=`<div class="card tap" onclick="go(sectionList,'site')"><h2>3. Site-Wide Questions</h2><div class="sub">${sd}/${st} answered</div>
+  h+=`<div class="card tap" onclick="go(sectionList,'site')"><h2>3. Site-Wide Questions &amp; Fuel</h2><div class="sub">${sd}/${st} answered &middot; fuel, fuel handling, water treatment, steam system</div>
       <div class="progress"><div style="width:${st?100*sd/st:0}%"></div></div></div>`;
   const sw=job.scope.requested.filter(x=>x.trim()).length, wd=job.scope.done.filter(x=>x.trim()).length;
   h+=`<div class="card tap" onclick="go(workView)"><h2>4. Scope of Work &amp; Work Done</h2><div class="sub">${sw} requested &middot; ${wd} done</div></div>`;
@@ -327,13 +403,13 @@ async function workDel(key,i){ job.scope[key].splice(i,1); if(!job.scope[key].le
 /* =====================================================================
    BOILERS
    ===================================================================== */
-async function addBoiler(){ const b={id:uid(),no:String(job.boilers.length+1),make:"",model:"",serial:"",capacity:"",pressure:"",year:"",firing:"stoker",fuel:{type:""},extras:[]};
+async function addBoiler(){ const b={id:uid(),no:String(job.boilers.length+1),make:"",model:"",serial:"",capacity:"",pressure:"",year:"",firing:"stoker",extras:[]};
   job.boilers.push(b); await saveJob(); go(boilerEdit,b.id); }
 function boilerMenu(bid,_k){ const b=boilerOf(bid); const [d,t]=counts(bid);
   screen("Boiler "+b.no,
    `<div class="card tap" onclick="go(boilerEdit,'${bid}')"><h2>Nameplate &amp; Details</h2>
     <div class="sub">${esc(b.make)} ${esc(b.model)} &middot; S/N ${esc(b.serial)||"?"} &middot; ${esc(firingOf(b).short)}</div></div>
-    <div class="card tap" onclick="go(sectionList,'${bid}')"><h2>Questionnaire</h2><div class="sub">${d}/${t} answered &middot; fuel ${b.fuel.type?"&#10004;":"not filled in"} &middot; ${b.extras.length} additional equipment section(s)</div>
+    <div class="card tap" onclick="go(sectionList,'${bid}')"><h2>Questionnaire</h2><div class="sub">${d}/${t} answered &middot; ${b.extras.length} additional equipment section(s)</div>
     <div class="progress"><div style="width:${t?100*d/t:0}%"></div></div></div>
     <button class="btn warn small" onclick="delBoiler('${bid}')">Remove boiler</button>`,null,_k); }
 async function delBoiler(bid){ if(!confirm("Remove this boiler, its answers and its photos?"))return;
@@ -354,18 +430,21 @@ function boilerEdit(bid){ const b=boilerOf(bid); const k=ptKey(bid,"Nameplate","
    <label>Year of manufacture</label><input type="text" id="b_year" value="${esc(b.year)}">
    <label>Firing / fuel type</label><select id="b_firing">
      ${Object.entries(FIRING).map(([v,f])=>`<option value="${v}" ${b.firing===v?"selected":""}>${esc(f.label)}</option>`).join("")}</select>
-   <p class="hint">This decides which questions you get and which fuel list is shown.</p>
+   <p class="hint">This decides which questions you get. Fuel details are filled in once, under Site-Wide Questions.</p>
+   ${fuelsOf(job,b).filter(f=>f.type).length>1?`<label>Fuel used by this boiler</label><select id="b_fuelId"><option value="">All / not specified</option>
+     ${fuelsOf(job,b).filter(f=>f.type).map(f=>`<option value="${f.id}" ${b.fuelId===f.id?"selected":""}>${esc(f.type)}</option>`).join("")}</select>`:""}
   </div>`,
   `<button class="btn" onclick="saveBoiler('${bid}')">Save Boiler</button>`);
   renderPhotos(k); }
 async function saveBoiler(bid){ const b=boilerOf(bid);
   ["no","make","model","serial","capacity","pressure","year","firing"].forEach(k=>b[k]=$("b_"+k).value.trim());
+  if($("b_fuelId")) b.fuelId=$("b_fuelId").value;
   await saveJob(); stack.pop(); go(boilerMenu,bid); }
 
 /* =====================================================================
    PHOTOS
    ===================================================================== */
-function ptKey(scope,tag,label){ const k="pt"+(++ptN); PT[k]={scope,tag,label}; return k; }
+function ptKey(scope,tag,label,qid){ const k="pt"+(++ptN); PT[k]={scope,tag,label,qid:qid||""}; return k; }
 function photoBlock(k){ return `<div class="photos" id="ps_${k}"></div>
   <div class="row"><button class="btn sec small" onclick="snap('${k}','camera')">&#128247; Take photo</button>
   <button class="btn sec small" onclick="snap('${k}','gallery')">&#128444; Upload</button></div>`; }
@@ -375,13 +454,13 @@ const fileGal=document.createElement("input"); fileGal.type="file"; fileGal.acce
 fileCam.onchange=e=>gotFiles(e.target.files); fileGal.onchange=e=>gotFiles(e.target.files);
 function snap(k,mode){ pendingShot=Object.assign({k},PT[k]); (mode==="camera"?fileCam:fileGal).click(); }
 async function gotFiles(files){ if(!pendingShot||!files||!files.length)return;
-  const {scope,tag,label,k}=pendingShot;
+  const {scope,tag,label,qid,k}=pendingShot;
   let seq=(await photosOf(job.id)).filter(p=>p.scope===scope&&p.tag===tag).length;
   for(const f of files){ seq++;
-    const bNo = scope==="site" ? "SITE" : "B"+clean((boilerOf(scope)||{}).no||"?");
-    const fname=`${yymmdd()}_${clean(job.customer.name)}_${bNo}_${clean(label||tag)}_${String(seq).padStart(2,"0")}.jpg`;
-    await put("photos",{id:uid(),jobId:job.id,scope,tag,label:label||"",include:true,caption:"",filename:fname,blob:f,created:Date.now()});
-    try{ const a=document.createElement("a"); a.href=URL.createObjectURL(f); a.download=fname; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }catch(e){}
+    const rec={id:uid(),jobId:job.id,scope,tag,qid:qid||"",label:label||"",include:true,caption:"",filename:"",blob:f,created:Date.now()+seq};
+    rec.filename=photoFileName(job,rec,seq);   // Category_Finding_Boiler_Customer_yymmdd_nn.jpg
+    await put("photos",rec);
+    try{ const a=document.createElement("a"); a.href=URL.createObjectURL(f); a.download=rec.filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }catch(e){}
   }
   fileCam.value=""; fileGal.value=""; pendingShot=null;
   renderPhotos(k); }
@@ -389,7 +468,7 @@ async function renderPhotos(k){ const el=$("ps_"+k); const t=PT[k]; if(!el||!t)r
   const ph=(await photosOf(job.id)).filter(p=>p.scope===t.scope&&p.tag===t.tag).sort((a,b)=>a.created-b.created);
   el.innerHTML=ph.map(p=>{ const u=URL.createObjectURL(p.blob); objURLs.push(u);
     return `<div class="ph"><img src="${u}">
-    <input class="cap" placeholder="caption" value="${esc(p.caption)}" onchange="capChange('${p.id}',this.value)">
+    <input class="cap" placeholder="${esc(photoCtx(job,p).text)}" title="Leave empty to use the finding as the caption" value="${esc(p.caption)}" onchange="capChange('${p.id}',this.value)">
     <div class="inc"><input type="checkbox" ${p.include?"checked":""} onchange="incChange('${p.id}',this.checked)"> in report</div>
     <button class="del" onclick="delPhoto('${p.id}','${k}')">remove</button></div>`; }).join(""); }
 async function capChange(id,v){ const p=await get("photos",id); p.caption=v; await put("photos",p); }
@@ -405,9 +484,10 @@ function sectionList(scope,_k){ const set=setFor(scope);
   const isSite=scope==="site"; const b=isSite?null:boilerOf(scope);
   const title=isSite?"Site-Wide":"Boiler "+b.no;
   let h='<p class="hint">Tap a section to answer its questions, in any order.</p>';
-  if(!isSite){ const fcat=FUEL_CAT_LABEL[firingOf(b).fuel];
-    h+=`<div class="list-item fuel tap" onclick="go(fuelView,'${scope}')"><div class="grow"><div class="title">Fuel (${esc(fcat)})</div>
-      <div class="sub">${b.fuel.type?esc(b.fuel.type):"type, analysis &amp; photos"}</div></div>${mark(!!b.fuel.type)}</div>`; }
+  if(isSite){ if(ensureFuels()) saveJob();
+    h+=job.fuels.map(f=>`<div class="list-item fuel tap" onclick="go(fuelView,'${f.id}')"><div class="grow"><div class="title">Fuel &mdash; ${esc(FUEL_CAT_LABEL[f.cat])}</div>
+      <div class="sub">${f.type?esc(f.type):"type, analysis &amp; photos"}</div></div>${mark(!!f.type)}</div>`).join("");
+    h+=`<button class="btn sec small" style="margin:0 0 12px" onclick="go(fuelAdd)">+ Add ${job.fuels.length?"another":"a"} fuel</button>`; }
   h+=set.map((sec,si)=>{ const [d,t]=secCounts(scope,sec);
     return `<div class="list-item tap" onclick="go(quest,'${scope}',${si})">
      <div class="grow"><div class="title">${esc(sec.section)}</div><div class="sub">${d}/${t} answered</div></div>${mark(d===t&&t>0)}</div>`; }).join("");
@@ -426,7 +506,7 @@ function quest(scope,si,_k){ const set=setFor(scope); if(si>=set.length){ back()
   const title=scope==="site"?"Site-Wide":"Boiler "+boilerOf(scope).no;
   let h=`<div class="hint">${esc(sec.section)} &middot; section ${si+1}/${set.length}</div>`;
   const keys=[];
-  sec.items.forEach((it,qi)=>{ const k=ptKey(scope,it.t,it.q.replace(/^(DATA|MEASURED): /,"")); keys.push(k); h+=qCard(scope,si,qi,it,k); });
+  sec.items.forEach((it,qi)=>{ const k=ptKey(scope,it.t,it.q.replace(/^(DATA|MEASURED): /,""),it.id); keys.push(k); h+=qCard(scope,si,qi,it,k); });
   screen(title,h,
    `<button class="btn sec" onclick="prevSec('${scope}',${si})">&#8592; Prev</button>
     <button class="btn" onclick="nextSec('${scope}',${si})">${si+1<set.length?"Next section &#8594;":"Done"}</button>`,_k);
@@ -434,15 +514,33 @@ function quest(scope,si,_k){ const set=setFor(scope); if(si>=set.length){ back()
 function prevSec(scope,si){ if(si>0){ stack.pop(); go(quest,scope,si-1);} else back(); }
 async function nextSec(scope,si){ await saveJob(); stack.pop(); go(quest,scope,si+1); }
 const PRIOS=[["High","H"],["Medium","M"],["Low","L"],["N/A","N"]];
-function commentPanel(a,it,call){ // call = JS arg list string for handlers
-  let h='<div class="panel">';
-  if(it&&it.f) h+=`<div class="suggest"><b>Suggested finding:</b> ${esc(it.f)}<br><button class="use" onclick="useF(${call})">&#8595; Use finding</button></div>`;
-  h+=`<label>${a.s==="OK"?"Comment / finding":"Finding"}</label><textarea onchange="setF(${call},'f',this.value)">${esc(a.f)}</textarea>`;
-  if(it&&it.r) h+=`<div class="suggest"><b>Suggested recommendation:</b> ${esc(it.r)}<br><button class="use" onclick="useR(${call})">&#8595; Use recommendation</button></div>`;
-  h+=`<label>Recommendation</label><textarea onchange="setF(${call},'r',this.value)">${esc(a.r)}</textarea>
-   <label>Priority list</label><div class="prio">${PRIOS.map(([p,c])=>`<button class="${a.p===p?"on-"+c:""}" onclick="setP(${call},'${p}')">${p}</button>`).join("")}</div>
-   <p class="hint">N/A = not added to the priority list at the end of the report.</p></div>`;
-  return h; }
+const lines=t=>String(t||"").split(/\r?\n+/).map(x=>x.trim()).filter(Boolean);
+const uniq=l=>{ const seen=new Set(), o=[]; l.forEach(t=>{ t=String(t||"").trim(); const k=t.toLowerCase(); if(t&&!seen.has(k)){ seen.add(k); o.push(t); } }); return o; };
+const sugOf=(it,k)=>uniq([it[k]].concat(it[k+"s"]||[]));
+const xKey=(name,title)=>(String(name||"").trim()+"|"+String(title||"").trim()).toLowerCase();
+function okGeneric(t){ const b=baseName(String(t||"").replace(/^(DATA|MEASURED): /,"")).replace(/\?+$/,"").trim();
+  if(/^leaks?$/i.test(b)) return "No leaks were found.";
+  return `${b} ${(/[^s]s$/i.test(b)||/ & |, | and | \/ /.test(b))?"are":"is"} in a good condition.`; }
+const okText=T=>T.it?(T.it.ok||okGeneric(T.it.q)):okGeneric(T.a.title);
+function sugFor(T,field){ let l;
+  if(T.it) l=sugOf(T.it,field); else { const x=(LISTS.sug||{})[xKey(T.x.name,T.a.title)]||{}; l=x[field+"s"]||[]; }
+  if(field==="f"&&T.a.s==="OK") l=[okText(T)].concat(l);
+  return uniq(l); }
+function sugSelect(list,call,field,what){ return list.length?`<select class="sug" onchange="pickSug(${call},'${field}',this.value)">
+   <option value="">&#9662; Pick a suggested ${what} (${list.length})</option>${list.map((t,i)=>`<option value="${i}">${esc(t)}</option>`).join("")}</select>`:""; }
+function commentPanel(T,call){ const a=T.a; const dflt=a.s==="Defect"&&T.it&&T.it.f;
+  return `<div class="panel">
+   <label>${a.s==="OK"?"Comment / finding":"Finding"}</label>${sugSelect(sugFor(T,"f"),call,"f","finding")}
+   <textarea placeholder="${dflt?esc("If left empty the report uses: "+T.it.f):"Type the finding (one per line)"}" onchange="setF(${call},'f',this.value)">${esc(a.f)}</textarea>
+   <label>Recommendation</label>${sugSelect(sugFor(T,"r"),call,"r","recommendation")}
+   <textarea placeholder="Type the recommendation (one per line)" onchange="setF(${call},'r',this.value)">${esc(a.r)}</textarea>
+   <label>Priority list</label><div class="prio">${PRIOS.map(([p,c])=>`<button class="${(a.p||"N/A")===p?"on-"+c:""}" onclick="setP(${call},'${p}')">${p}</button>`).join("")}</div>
+   <p class="hint">What you type is saved in the suggestion list for next time. The finding is also the caption of this question's photos. N/A = not in the priority list at the end of the report.</p></div>`; }
+function answerBody(T,call){ const a=T.a;
+  const custom=a.c||String(a.r||"").trim()||(a.p&&a.p!=="N/A")||(String(a.f||"").trim()&&!a.fAuto);
+  if(a.s==="Defect"||(a.s==="OK"&&custom)) return commentPanel(T,call);
+  if(a.s==="OK") return (a.f?`<div class="okline">&#10004; ${esc(T.it?findingOf(T.it,a):a.f)}</div>`:"")+`<button class="addc" onclick="openC(${call})">&#9998; Edit comment / add recommendation</button>`;
+  return ""; }
 function statusSeg(a,call){ return `<div class="seg">${["OK","Defect","N/A","Skip"].map(s=>{
   const on=a.s===s?("on-"+({OK:"ok",Defect:"def","N/A":"na",Skip:"skip"}[s])):"";
   return `<button class="${on}" onclick="setS(${call},'${s}')">${s}</button>`;}).join("")}</div>`; }
@@ -458,10 +556,7 @@ function qCard(scope,si,qi,it,k){ const a=ans(scope,it.id); const call=`'q','${s
   if(it.d==="data"){ body+=`<label>Value</label><input type="text" value="${esc(a.v)}" onchange="setF(${call},'v',this.value,true)">`; }
   else{
     if(it.d==="measured") body+=`<label>Measured value</label><input type="text" value="${esc(a.v)}" onchange="setF(${call},'v',this.value)">`;
-    body+=statusSeg(a,call);
-    const open=a.s==="Defect"||(a.s==="OK"&&(a.c||a.f||a.r||(a.p&&a.p!=="N/A")));
-    if(open) body+=commentPanel(a,it,call);
-    else if(a.s==="OK") body+=`<button class="addc" onclick="openC(${call})">&#128172; Add comment / recommendation</button>`;
+    body+=statusSeg(a,call)+answerBody({a,it},call);
   }
   body+=photoBlock(k);
   return `<div class="card"><div class="qnum">Q${qi+1} ${mark(answered(it,a))}</div><h3 class="q">${esc(qtext)}</h3>${body}</div>`; }
@@ -469,41 +564,64 @@ function qCard(scope,si,qi,it,k){ const a=ans(scope,it.id); const call=`'q','${s
 /* shared answer handlers. kind 'q' = library question (scope,qid); kind 'x' = additional equipment item (bid, "xid:iid") */
 function target(kind,scope,id){
   if(kind==="q") return {a:ans(scope,id), it:findItem(scope,id)};
-  const [xid,iid]=id.split(":"); const x=boilerOf(scope).extras.find(e=>e.id===xid); return {a:x.items.find(i=>i.id===iid), it:null}; }
+  const [xid,iid]=id.split(":"); const x=boilerOf(scope).extras.find(e=>e.id===xid); return {a:x.items.find(i=>i.id===iid), it:null, x}; }
 function findItem(scope,qid){ for(const s of setFor(scope)) for(const it of s.items) if(it.id===qid) return it; return null; }
-async function setS(kind,scope,id,s){ const {a,it}=target(kind,scope,id); a.s=(a.s===s?"":s);
-  if(a.s==="Defect"&&(!a.p||a.pAuto)){ a.p=(it&&["High","Medium","Low"].includes(it.p))?it.p:"Medium"; a.pAuto=true; }
-  if(a.s==="OK"&&(!a.p||a.pAuto)){ a.p="N/A"; a.pAuto=true; }
+function libTwin(it){ let hit=null; PARTS.forEach(([p])=>LIB[p].forEach(s=>s.items.forEach(x=>{ if(x.id===it.id&&x.q===it.q) hit=x; })));
+  if(!hit) PARTS.forEach(([p])=>LIB[p].forEach(s=>s.items.forEach(x=>{ if(!hit&&x.q===it.q) hit=x; }))); return hit; }
+/* every finding / recommendation typed by hand is remembered as a suggestion for that question */
+function learn(T,field,val){ const ok=okText(T).toLowerCase(); const ls=lines(val).filter(t=>t.length>2&&t.toLowerCase()!==ok); if(!ls.length) return;
+  const key=field+"s"; const add=list=>{ let ch=false; ls.forEach(t=>{ if(!list.some(x=>x.toLowerCase()===t.toLowerCase())){ list.push(t); ch=true; } }); return ch; };
+  if(T.it){ const its=[T.it]; if(job.qs){ const tw=libTwin(T.it); if(tw) its.push(tw); } let ch=false;
+    its.forEach(it=>{ if(!it[key]) it[key]=it[field]?[it[field]]:[]; if(add(it[key])) ch=true; }); if(ch) saveLib(); }
+  else { LISTS.sug=LISTS.sug||{}; const k=xKey(T.x.name,T.a.title); const e=LISTS.sug[k]=LISTS.sug[k]||{fs:[],rs:[]}; e[key]=e[key]||[]; if(add(e[key])) saveLists(); } }
+async function setS(kind,scope,id,s){ const T=target(kind,scope,id); const a=T.a; a.s=(a.s===s?"":s);
+  if(a.fAuto&&a.s!=="OK"){ a.f=""; a.fAuto=false; }                                   // drop the automatic "good condition" comment
+  if(a.s==="OK"&&!String(a.f||"").trim()){ a.f=okText(T); a.fAuto=true; }            // OK = "<item> is in a good condition."
+  if(a.s&&!a.p) a.p="N/A";                                                            // every priority starts at N/A
   await saveJob(); rerender(); }
-async function setF(kind,scope,id,field,val,redraw){ const {a}=target(kind,scope,id); a[field]=val; await saveJob(); if(redraw) rerender(); }
-async function setP(kind,scope,id,p){ const {a}=target(kind,scope,id); a.p=p; a.pAuto=false; await saveJob(); rerender(); }
+async function setF(kind,scope,id,field,val,redraw){ const T=target(kind,scope,id); T.a[field]=val;
+  if(field==="f") T.a.fAuto=false; if(field==="f"||field==="r") learn(T,field,val);
+  await saveJob(); if(redraw) rerender(); }
+async function setP(kind,scope,id,p){ const {a}=target(kind,scope,id); a.p=p; await saveJob(); rerender(); }
 async function openC(kind,scope,id){ const {a}=target(kind,scope,id); a.c=true; await saveJob(); rerender(); }
-async function useF(kind,scope,id){ const {a,it}=target(kind,scope,id); a.f=(a.f?a.f+" ":"")+it.f; await saveJob(); rerender(); }
-async function useR(kind,scope,id){ const {a,it}=target(kind,scope,id); a.r=(a.r?a.r+" ":"")+it.r; await saveJob(); rerender(); }
+async function pickSug(kind,scope,id,field,idx){ if(idx==="")return; const T=target(kind,scope,id); const a=T.a; const t=sugFor(T,field)[+idx]; if(!t)return;
+  const cur=String(a[field]||"").trim();
+  if(!cur||(field==="f"&&a.fAuto)) a[field]=t; else if(!lines(cur).some(x=>x.toLowerCase()===t.toLowerCase())) a[field]=cur+"\n"+t;
+  if(field==="f") a.fAuto=(a.s==="OK"&&a.f===okText(T));
+  a.c=true; await saveJob(); rerender(); }
 async function pickOpt(scope,qid,v){ const a=ans(scope,qid); if(v==="__other__"){ a.eo=true; a.e=""; } else { a.eo=false; a.e=v; } await saveJob(); rerender(); }
 
 /* =====================================================================
    FUEL FORM
    ===================================================================== */
-function fuelView(bid,_k){ const b=boilerOf(bid); const cat=firingOf(b).fuel; const f=b.fuel; PT={};
+const fuelOf=fid=>job.fuels.find(f=>f.id===fid);
+function fuelAdd(){ screen("Add a fuel",`<div class="card"><h2>What kind of fuel?</h2>
+   ${Object.entries(FUEL_CAT_LABEL).map(([c,l])=>`<button class="btn sec wide" onclick="fuelCreate('${c}')">${esc(l)}</button>`).join("")}</div>`); }
+async function fuelCreate(cat){ const f={id:"f"+uid(),cat,type:""}; job.fuels.push(f); await saveJob(); stack.pop(); go(fuelView,f.id); }
+function fuelView(fid,_k){ const f=fuelOf(fid); if(!f){ back(); return; } const cat=f.cat; PT={};
   const saved=LISTS.fuel[cat]; const known=saved.includes(f.type); const other=!!f.typeOther||(f.type&&!known);
-  let h=`<div class="card"><h2>${esc(FUEL_CAT_LABEL[cat])} fuel</h2>
-    <label>Fuel type</label><select onchange="fuelType('${bid}',this.value)">
+  const users=job.boilers.filter(b=>firingOf(b).fuel===cat).map(b=>"Boiler "+b.no).join(", ");
+  let h=`<div class="card"><h2>${esc(FUEL_CAT_LABEL[cat])} fuel</h2><p class="hint">Filled in once for the site${users?" ("+esc(users)+")":""}.</p>
+    <label>Fuel type</label><select onchange="fuelType('${fid}',this.value)">
       <option value="" ${!f.type&&!other?"selected":""}>-- select --</option>
       ${saved.map(t=>`<option ${!other&&f.type===t?"selected":""}>${esc(t)}</option>`).join("")}
       <option value="__other__" ${other?"selected":""}>Other / add new...</option></select>
-    ${other?`<input type="text" placeholder="type the fuel name - it will be saved for next time" value="${esc(f.type)}" onchange="fuelNew('${bid}',this.value)">`:""}`;
-  FUEL_FIELDS[cat].forEach(([k,l])=>{ h+=`<label>${esc(l)}</label><input type="text" value="${esc(f[k])}" onchange="fuelSet('${bid}','${k}',this.value)">`; });
-  h+=`<label>Fuel analysis report available</label><select onchange="fuelSet('${bid}','analysis',this.value)">
+    ${other?`<input type="text" placeholder="type the fuel name - it will be saved for next time" value="${esc(f.type)}" onchange="fuelNew('${fid}',this.value)">`:""}`;
+  FUEL_FIELDS[cat].forEach(([k,l])=>{ h+=`<label>${esc(l)}</label><input type="text" value="${esc(f[k])}" onchange="fuelSet('${fid}','${k}',this.value)">`; });
+  h+=`<label>Fuel analysis report available</label><select onchange="fuelSet('${fid}','analysis',this.value)">
       ${["","Yes","No"].map(v=>`<option value="${v}" ${f.analysis===v?"selected":""}>${v||"-- select --"}</option>`).join("")}</select>
-    <label>Date of last fuel analysis</label><input type="text" value="${esc(f.analysisDate)}" onchange="fuelSet('${bid}','analysisDate',this.value)">
-    <label>Notes</label><textarea onchange="fuelSet('${bid}','notes',this.value)">${esc(f.notes)}</textarea></div>`;
-  const keys=FUEL_PHOTOS.map(([t,l])=>{ const k=ptKey(bid,t,l); h+=`<div class="card"><h2>${esc(l)}</h2>${photoBlock(k)}</div>`; return k; });
-  screen("Boiler "+b.no+" — Fuel",h,`<button class="btn" onclick="saveJob().then(back)">Done</button>`,_k);
+    <label>Date of last fuel analysis</label><input type="text" value="${esc(f.analysisDate)}" onchange="fuelSet('${fid}','analysisDate',this.value)">
+    <label>Notes</label><textarea onchange="fuelSet('${fid}','notes',this.value)">${esc(f.notes)}</textarea></div>`;
+  const keys=FUEL_PHOTOS.map(([t,l])=>{ const k=ptKey("site",t+"_"+fid,""); h+=`<div class="card"><h2>${esc(l)}</h2>${photoBlock(k)}</div>`; return k; });
+  h+=`<button class="btn warn small" onclick="fuelDel('${fid}')">Remove this fuel</button>`;
+  screen("Fuel — "+FUEL_CAT_LABEL[cat],h,`<button class="btn" onclick="saveJob().then(back)">Done</button>`,_k);
   keys.forEach(renderPhotos); }
-async function fuelType(bid,v){ const f=boilerOf(bid).fuel; if(v==="__other__"){ f.typeOther=true; f.type=""; } else { f.typeOther=false; f.type=v; } await saveJob(); rerender(); }
-async function fuelNew(bid,v){ const b=boilerOf(bid); b.fuel.type=v.trim(); rememberFuel(firingOf(b).fuel,v); await saveJob(); }
-async function fuelSet(bid,k,v){ boilerOf(bid).fuel[k]=v.trim(); await saveJob(); }
+async function fuelType(fid,v){ const f=fuelOf(fid); if(v==="__other__"){ f.typeOther=true; f.type=""; } else { f.typeOther=false; f.type=v; } await saveJob(); rerender(); }
+async function fuelNew(fid,v){ const f=fuelOf(fid); f.type=v.trim(); rememberFuel(f.cat,v); await saveJob(); }
+async function fuelSet(fid,k,v){ fuelOf(fid)[k]=v.trim(); await saveJob(); }
+async function fuelDel(fid){ if(!confirm("Remove this fuel and its photos?"))return;
+  for(const p of await photosOf(job.id)) if(p.scope==="site"&&String(p.tag).endsWith("_"+fid)) await del("photos",p.id);
+  job.fuels=job.fuels.filter(f=>f.id!==fid); job.boilers.forEach(b=>{ if(b.fuelId===fid) delete b.fuelId; }); await saveJob(); back(); }
 
 /* =====================================================================
    ADDITIONAL EQUIPMENT (custom sections per boiler)
@@ -524,11 +642,10 @@ function extraView(bid,xid,_k){ const b=boilerOf(bid); const x=b.extras.find(e=>
   let h=`<div class="card"><label>Equipment / section name</label><input type="text" value="${esc(x.name)}" onchange="extraRename('${bid}','${xid}',this.value)"></div>`;
   const keys=[];
   x.items.forEach((i,n)=>{ const call=`'x','${bid}','${xid}:${i.id}'`; const k=ptKey(bid,"X"+i.id,x.name+" - "+i.title); keys.push(k);
-    const open=i.s==="Defect"||(i.s==="OK"&&(i.c||i.f||i.r||(i.p&&i.p!=="N/A")));
     h+=`<div class="card"><div class="qnum">Check ${n+1} ${mark(!!i.s)}
       <button class="btn sec small" style="float:right;margin:0" onclick="extraDelItem('${bid}','${xid}','${i.id}')">&#10005;</button></div>
       <h3 class="q">${esc(i.title)}</h3>${statusSeg(i,call)}
-      ${open?commentPanel(i,null,call):(i.s==="OK"?`<button class="addc" onclick="openC(${call})">&#128172; Add comment / recommendation</button>`:"")}
+      ${answerBody({a:i,it:null,x},call)}
       ${photoBlock(k)}</div>`; });
   h+=`<div class="card"><h2>Add a check</h2><input type="text" id="x_item" list="x_titles" placeholder="e.g. Tubes condition">
      <datalist id="x_titles">${(LISTS.extras[x.name]||[]).map(t=>`<option value="${esc(t)}">`).join("")}</datalist>
@@ -578,7 +695,7 @@ function libSection(part,si,_k){ const sec=LIB[part][si];
 async function libRenameSec(part,si,v){ LIB[part][si].section=v; await saveLib(); }
 async function libDelSec(part,si){ if(!confirm("Delete this section and all its questions?"))return;
   LIB[part].splice(si,1); await saveLib(); back(); }
-async function libAddItem(part,si){ LIB[part][si].items.push({id:"q"+uid(),q:"New question",f:"",r:"",p:"Medium",t:"NewQuestion",d:"check"});
+async function libAddItem(part,si){ LIB[part][si].items.push({id:"q"+uid(),q:"New question",f:"",r:"",p:"N/A",t:"",d:"check"});
   await saveLib(); go(libItem,part,si,LIB[part][si].items.length-1); }
 function libItem(part,si,qi){ const it=LIB[part][si].items[qi];
   screen("Edit Question",`<div class="card">
@@ -587,16 +704,18 @@ function libItem(part,si,qi){ const it=LIB[part][si].items[qi];
      <option value="check" ${it.d==="check"?"selected":""}>Check (OK / Defect / N-A / Skip)</option>
      <option value="data" ${it.d==="data"?"selected":""}>Data entry only</option>
      <option value="measured" ${it.d==="measured"?"selected":""}>Measured value + check</option></select>
-   <label>Pre-written finding</label><textarea id="li_f">${esc(it.f)}</textarea>
-   <label>Pre-written recommendation</label><textarea id="li_r">${esc(it.r)}</textarea>
-   <label>Default priority</label><select id="li_p">${["High","Medium","Low","N/A"].map(p=>`<option ${it.p===p?"selected":""}>${p}</option>`).join("")}</select>
+   <label>Comment when OK is tapped (empty = "... is in a good condition.")</label><textarea id="li_ok">${esc(it.ok)}</textarea>
+   <label>Suggested findings &mdash; one per line. The first one is used when a Defect has no finding typed.</label><textarea id="li_f" style="min-height:130px">${esc(sugOf(it,"f").join("\n"))}</textarea>
+   <label>Suggested recommendations &mdash; one per line</label><textarea id="li_r" style="min-height:130px">${esc(sugOf(it,"r").join("\n"))}</textarea>
+   <p class="hint">Findings and recommendations typed during an audit are added to these lists automatically. Delete the lines you do not want. Priority always starts at N/A.</p>
    <label>Equipment dropdown options (comma separated, empty = none)</label><input type="text" id="li_o" value="${esc((it.opts||[]).join(", "))}">
   </div>`,
   `<button class="btn" onclick="libSaveItem('${part}',${si},${qi})">Save</button>
    <button class="btn warn" onclick="libDelItem('${part}',${si},${qi})">Delete</button>`); }
 async function libSaveItem(part,si,qi){ const it=LIB[part][si].items[qi];
-  it.q=$("li_q").value.trim(); it.d=$("li_d").value; it.f=$("li_f").value.trim(); it.r=$("li_r").value.trim();
-  it.p=$("li_p").value; it.t=it.t||tagOf(it.q);
+  it.q=$("li_q").value.trim(); it.d=$("li_d").value; it.p="N/A"; it.t=it.t||tagOf(it.q);
+  it.fs=uniq(lines($("li_f").value)); it.f=it.fs[0]||""; it.rs=uniq(lines($("li_r").value)); it.r=it.rs[0]||"";
+  const ok=$("li_ok").value.trim(); if(ok) it.ok=ok; else delete it.ok;
   const o=$("li_o").value.split(",").map(s=>s.trim()).filter(Boolean); if(o.length) it.opts=o; else delete it.opts;
   await saveLib(); back(); }
 async function libDelItem(part,si,qi){ if(!confirm("Delete this question?"))return; LIB[part][si].items.splice(qi,1); await saveLib(); back(); }
@@ -620,10 +739,10 @@ libFile.onchange=async e=>{ const f=e.target.files[0]; if(!f)return;
     if(!v.shared||!v.site) throw new Error("this is not a question library file");
     PARTS.forEach(([p])=>{ if(!v[p]) v[p]=seedPart(p);
       v[p].forEach(s=>{ s.id=s.id||"s"+uid(); s.items.forEach(it=>{ it.id=it.id||"q"+uid(); it.t=it.t||tagOf(it.q); it.d=it.d||"check"; }); }); });
-    v._v=5; LIB=v; await saveLib(); if(lists){ LISTS=lists; await loadListsFix(); }
+    if((v._v||0)<QS_VER) upgradeQS(v); LIB=v; await saveLib(); if(lists){ LISTS=lists; await loadListsFix(); }
     alert("Questions imported."); rerender();
   }catch(err){ alert("Import failed: "+err.message); } libFile.value=""; };
-async function loadListsFix(){ LISTS.fuel=LISTS.fuel||{}; ["coal","oil","biomass"].forEach(c=>LISTS.fuel[c]=LISTS.fuel[c]||[]); LISTS.extras=LISTS.extras||{}; await saveLists(); }
+async function loadListsFix(){ LISTS.fuel=LISTS.fuel||{}; ["coal","oil","biomass"].forEach(c=>LISTS.fuel[c]=LISTS.fuel[c]||[]); LISTS.extras=LISTS.extras||{}; LISTS.sug=LISTS.sug||{}; await saveLists(); }
 function libImportPick(){ libFile.click(); }
 async function libReset(){ if(!confirm("Replace your edited questions with the built-in questions? (Saved lists are kept.)"))return;
   LIB=seedLib(); await saveLib(); rerender(); }
@@ -638,6 +757,9 @@ async function generateView(_k){ const ph=await photosOf(job.id); const inc=ph.f
   if(!job.customer.name) warn.push("Customer name is empty.");
   if(!job.customer.reportNo) warn.push("Report number is empty.");
   if(!job.boilers.length) warn.push("No boilers added.");
+  let naDef=0; Object.keys(job.answers).forEach(k=>{ const a=job.answers[k]; if(a.s==="Defect"&&!PRIO.includes(a.p)) naDef++; });
+  job.boilers.forEach(b=>b.extras.forEach(x=>x.items.forEach(i=>{ if(i.s==="Defect"&&!PRIO.includes(i.p)) naDef++; })));
+  if(naDef) warn.push(naDef+" defect(s) have priority N/A - they are printed under their section but not in the High / Medium / Low priority list.");
   if(unanswered) warn.push(unanswered+" question(s) not answered - they are simply left out of the report.");
   screen("Generate Report",`
    <div class="genbox"><h2 style="margin-top:0;color:var(--jt)">&#128196; Word report</h2>
@@ -676,37 +798,54 @@ function findingOf(it,a){ let t=a.s==="Defect"?(a.f||(it&&it.f)||""):(a.s==="OK"
   if(a.v) t=t.replace(/_{3,}/g,a.v); return t.trim(); }
 function recOf(it,a){ return (a.s==="Defect"?(a.r||(it&&it.r)||""):(a.s==="OK"?(a.r||""):"")).trim(); }
 const PRIO=["High","Medium","Low"];
-function reportModel(J){
-  const qs=J.qs||LIB;
-  const setOf=b=>(qs.shared||[]).concat(qs[(FIRING[b.firing]||FIRING.burner).part]||[]);
+const pctVal=v=>/^\s*\d+([.,]\d+)?\s*$/.test(v)?String(v).trim()+" %":String(v).trim();
+/* phKeys = Set of "scope|tag" that have photos in the report. Every question becomes its own block
+   (title, data, finding, recommendation, its photos); plain "good condition" OKs without photos are listed together. */
+function reportModel(J,phKeys){
+  const qs=J.qs||LIB; phKeys=phKeys||new Set();
   const bLabel=b=>"Boiler "+(b.no||"");
-  const order=[], secs={};               // section name -> [{boiler,data,find,recs}]
+  const order=[], secs={};               // section name -> [{boiler,...entry}]
   const prio={High:[],Medium:[],Low:[]};  // [{group, text, section}]
-  const addPrio=(p,group,text,section)=>{ if(PRIO.includes(p)&&text) prio[p].push({group,text,section}); };
-  J.boilers.forEach(b=>{
-    const entries=[];
-    setOf(b).forEach(sec=>{ const e={name:cleanSec(sec.section),data:[],find:[],recs:[],touched:false};
-      sec.items.forEach(it=>{ const a=J.answers[b.id+"|"+it.id]; if(!a) return;
-        if(a.s||a.v||a.e) e.touched=true;
-        if(it.opts&&a.e) e.data.push(baseName(qText(it))+": "+a.e);
-        if((it.d==="data"||it.d==="measured")&&a.v) e.data.push(qText(it)+": "+a.v);
+  let defects=0;
+  const addPrio=(p,group,text,section)=>{ if(PRIO.includes(p)) lines(text).forEach(t=>prio[p].push({group,text:t,section})); };
+  const newEntry=(name,inline,ct)=>({name,data:[],blocks:[],good:[],find:[],recs:[],table:[],thead:ct?["Load point","Flue gas O2"]:["Measurement","Value"],inline:!!inline,tags:[],touched:false});
+  const done=e=>{ e.empty=!e.data.length&&!e.blocks.length&&!e.good.length&&!e.find.length&&!e.recs.length&&!e.table.length; return e; };
+  // one question / check -> block or "good" line
+  const addItem=(e,o)=>{ // o={title,key,d,s,f,r,p,v,vLabel,eq,auto}
+    const hasPh=phKeys.has(o.key);
+    if(o.s||o.v||o.eq||hasPh) e.touched=true; else return;
+    if(o.s==="Defect") defects++;
+    const fl=(o.s==="Defect"||o.s==="OK")?lines(o.f):[], rl=(o.s==="Defect"||o.s==="OK")?lines(o.r):[];
+    if(o.s==="Defect"||o.s==="OK") addPrio(o.p,e.group,o.r||o.f,e.name);
+    if(o.d==="data"&&!hasPh&&!fl.length){ if(o.v) e.data.push(o.title+": "+o.v); return; }
+    if(o.s==="OK"&&o.auto&&!rl.length&&!hasPh&&!o.v&&!o.eq){ e.good.push(...fl); return; }
+    const data=[]; if(o.eq) data.push(o.eqLabel+": "+o.eq); if(o.v) data.push((o.d==="data"?"Value":"Measured")+": "+o.v);
+    e.blocks.push({title:o.title,data,find:fl,recs:rl,key:o.key}); };
+  const entry=(sec,scope,group)=>{ const ct=/combustion test/i.test(sec.section);
+    const e=newEntry(cleanSec(sec.section),sec.inline,ct); e.group=group;
+    sec.items.forEach(it=>{ const a=J.answers[scope+"|"+it.id]||{};
+      if(e.inline){ // combustion test: results table + findings + all photos together
+        e.tags.push(it.t); if(it.d==="measured") e.table.push([qText(it).replace(/\s*O2 measurement$/i,""),a.v?(ct?pctVal(a.v):a.v):"Not measured"]);
+        if(a.s||a.v||a.e||phKeys.has(scope+"|"+it.t)) e.touched=true;
+        if(a.s==="Defect") defects++;
         if(a.s==="Defect"||a.s==="OK"){ const f=findingOf(it,a), r=recOf(it,a);
-          if(f) e.find.push(f); if(r) e.recs.push(r); addPrio(a.p,bLabel(b),r||f,e.name); } });
-      entries.push(e); });
-    (b.extras||[]).forEach(x=>{ const e={name:cleanSec(x.name),data:[],find:[],recs:[],extra:true,touched:false};
-      x.items.forEach(i=>{ if(i.s) e.touched=true; if(i.s!=="Defect"&&i.s!=="OK") return;
-        let f=(i.f||"").trim(); const r=(i.r||"").trim();
-        if(!f&&i.s==="Defect") f=i.title+": defect noted.";
-        if(f) e.find.push(f); if(r) e.recs.push(r); addPrio(i.p,bLabel(b),r||f,e.name); });
-      entries.push(e); });
+          if(!(a.s==="OK"&&a.fAuto)) lines(f).forEach(x=>e.find.push(x));
+          lines(r).forEach(x=>e.recs.push(x)); addPrio(a.p,group,r||f,e.name); }
+        return; }
+      addItem(e,{title:qText(it),key:scope+"|"+it.t,d:it.d,s:a.s,f:findingOf(it,a),r:recOf(it,a),p:a.p,v:it.d==="check"?"":a.v,
+        eq:it.opts?a.e:"",eqLabel:"Equipment",auto:!!a.fAuto}); });
+    return done(e); };
+  J.boilers.forEach(b=>{
+    const entries=setOfB(qs,b).map(sec=>entry(sec,b.id,bLabel(b)));
+    (b.extras||[]).forEach(x=>{ const e=newEntry(cleanSec(x.name)); e.group=bLabel(b); e.extra=true;
+      x.items.forEach(i=>{ let f=(i.f||"").trim(); if(!f&&i.s==="Defect") f=i.title+": defect noted.";
+        addItem(e,{title:i.title,key:b.id+"|X"+i.id,d:"check",s:i.s,f,r:(i.r||"").trim(),p:i.p,auto:!!i.fAuto}); });
+      entries.push(done(e)); });
     entries.filter(e=>e.touched).forEach(e=>{ if(!secs[e.name]){ secs[e.name]=[]; order.push(e.name); } secs[e.name].push(Object.assign({boiler:b},e)); });
   });
-  const site=(qs.site||[]).map(sec=>{ const e={name:cleanSec(sec.section),find:[],recs:[],touched:false};
-    sec.items.forEach(it=>{ const a=J.answers["site|"+it.id]; if(a&&(a.s||a.v)) e.touched=true; if(!a||(a.s!=="Defect"&&a.s!=="OK")) return;
-      const f=findingOf(it,a), r=recOf(it,a); if(f) e.find.push(f); if(r) e.recs.push(r); addPrio(a.p,"Site",r||f,e.name); });
-    return e; }).filter(e=>e.touched);
+  const site=(qs.site||[]).map(sec=>entry(sec,"site","Site")).filter(e=>e.touched);
   const groups=J.boilers.map(bLabel).concat(["Site"]);
-  return {order,secs,site,prio,groups};
+  return {order,secs,site,prio,groups,defects};
 }
 
 /* =====================================================================
@@ -729,21 +868,23 @@ function wP(text,o){ o=o||{}; let ppr="";
   return `<w:p>${ppr?`<w:pPr>${ppr}</w:pPr>`:""}${o.raw||wRuns(text,o)}</w:p>`; }
 const wPageBreak=()=>`<w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
 const wH=(lvl,text,upper)=>wP((upper==null?lvl<=2:upper)?String(text).toUpperCase():text,{style:"Heading"+lvl,keepNext:true});
-const wBullet=t=>wP("•\t"+t,{style:"ListParagraph",ind:[720,360],tabs:[720],after:40});
+const wBullet=(t,keep)=>wP("•\t"+t,{style:"ListParagraph",ind:[720,360],tabs:[720],after:40,keepNext:!!keep});
+const wBulletL=(label,t,keep)=>wP("",{style:"ListParagraph",ind:[720,360],tabs:[720],after:40,keepNext:!!keep,raw:wRuns("•\t")+wRuns(label,{bold:true})+wRuns(t)});
 const wLabel=(t,o)=>wP(t,Object.assign({bold:true,keepNext:true,before:120,after:40},o||{}));
 function wTable(rows,widths,o){ o=o||{};
   const grid=widths.map(w=>`<w:gridCol w:w="${w}"/>`).join("");
-  const trs=rows.map(r=>`<w:tr><w:trPr><w:cantSplit/></w:trPr>${r.map((c,i)=>`<w:tc><w:tcPr><w:tcW w:w="${widths[i]}" w:type="dxa"/></w:tcPr>${wP(c,{bold:o.boldFirst&&i===0,after:0})}</w:tc>`).join("")}</w:tr>`).join("");
+  const trs=rows.map((r,ri)=>`<w:tr><w:trPr><w:cantSplit/></w:trPr>${r.map((c,i)=>`<w:tc><w:tcPr><w:tcW w:w="${widths[i]}" w:type="dxa"/></w:tcPr>${wP(c,{bold:(o.boldFirst&&i===0)||(o.head&&ri===0),after:0})}</w:tc>`).join("")}</w:tr>`).join("");
   return `<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="${widths.reduce((a,b)=>a+b,0)}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblLook w:val="04A0"/></w:tblPr><w:tblGrid>${grid}</w:tblGrid>${trs}</w:tbl>`+wP("",{after:0}); }
 function wImage(rid,cx,cy,id){ return `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Photo ${id}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${id}" name="photo${id}.jpg"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`; }
-/* photo grid: 2 x 2 per page, image fitted in BOX, rows spread evenly */
-const EMU_CM=360000, BOX_W=Math.round(7.6*EMU_CM), BOX_H=Math.round(8.4*EMU_CM), ROW_H=Math.round(9.8*567);
-function wPhotoGrid(cells){ const colW=BODY_W/2;
+/* photo grid: 2 x 2 per page, image fitted in BOX, rows spread evenly. Inline grids (combustion test) use a lower box. */
+const EMU_CM=360000, BOX_W=Math.round(7.6*EMU_CM), BOX_H=Math.round(8.0*EMU_CM), ROW_H=Math.round(9.8*567);
+const INL_H=Math.round(5.6*EMU_CM), INL_ROW=Math.round(6.6*567), CAP_MAX=230;   // photos in the text: 2 side by side, ~6 cm
+function wPhotoGrid(cells,rowH){ const colW=BODY_W/2;
   const cell=c=>`<w:tc><w:tcPr><w:tcW w:w="${colW}" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${c?
     wP("",{jc:"center",before:60,after:60,keepNext:true,raw:c.img})+wP(c.cap,{jc:"center",italic:true,sz:18,after:60}):wP("",{after:0})}</w:tc>`;
   let rows="";
-  for(let i=0;i<cells.length;i+=2) rows+=`<w:tr><w:trPr><w:cantSplit/><w:trHeight w:val="${ROW_H}" w:hRule="atLeast"/></w:trPr>${cell(cells[i])}${cell(cells[i+1])}</w:tr>`;
-  const nb=["top","left","bottom","right","insideH","insideV"].map(s=>`<w:${s} w:val="nil"/>`).join("");
+  for(let i=0;i<cells.length;i+=2) rows+=`<w:tr><w:trPr><w:cantSplit/><w:trHeight w:val="${rowH||ROW_H}" w:hRule="atLeast"/></w:trPr>${cell(cells[i])}${cell(cells[i+1])}</w:tr>`;
+  const nb=["top","left","bottom","right","insideH","insideV"].map(x=>`<w:${x} w:val="nil"/>`).join("");
   return `<w:tbl><w:tblPr><w:tblW w:w="${BODY_W}" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders>${nb}</w:tblBorders><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="${colW}"/><w:gridCol w:w="${colW}"/></w:tblGrid>${rows}</w:tbl>`; }
 
 /* photo normalising: apply phone orientation, shrink to 1600 px, re-encode */
@@ -754,35 +895,82 @@ async function docPhoto(blob){
   if(bmp.close) bmp.close();
   const out=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("photo encode failed")),"image/jpeg",0.85)); c.width=c.height=1;
   return {bytes:new Uint8Array(await out.arrayBuffer()),w:W,h:H}; }
-function photoLabel(J,p){ if(p.label) return p.label;
-  const qs=J.qs||LIB; for(const part of Object.keys(qs)) if(Array.isArray(qs[part])) for(const s of qs[part]) for(const it of s.items) if(it.t===p.tag) return qText(it);
-  const fp=FUEL_PHOTOS.find(f=>f[0]===p.tag); if(fp) return fp[1];
-  return String(p.tag||"Photo").replace(/([a-z])([A-Z])/g,"$1 $2"); }
-function photoOrder(J,photos){ // nameplate, fuel, questionnaire order, additional equipment, rest
+/* what a photo shows: category = section name, text = the finding written for that question (or the question itself) */
+function photoCtx(J,p){ const qs=J.qs||LIB; const b=p.scope==="site"?null:boilerOf2(J,p.scope);
+  if(p.tag==="Nameplate") return {cat:"Nameplate",text:"Boiler "+((b||{}).no||"")+" nameplate"};
+  const fm=/^(FuelSample|FuelAnalysis|FuelStorage)(?:_(.+))?$/.exec(p.tag||"");
+  if(fm){ const f=(J.fuels||[]).find(x=>x.id===fm[2]); return {cat:"Fuel",text:FUEL_PHOTOS.find(x=>x[0]===fm[1])[1]+(f&&f.type?" - "+f.type:"")}; }
+  const secs=p.scope==="site"?(qs.site||[]):(b?setOfB(qs,b):[]); let hit=null;
+  if(p.qid) for(const sc of secs) for(const it of sc.items) if(!hit&&it.id===p.qid) hit=[sc,it];
+  for(const sc of secs) for(const it of sc.items) if(!hit&&it.t===p.tag) hit=[sc,it];
+  if(hit){ const f=lines(findingOf(hit[1],J.answers[p.scope+"|"+hit[1].id]||{}))[0]; return {cat:cleanSec(hit[0].section),text:f||p.label||qText(hit[1])}; }
+  if(b) for(const x of b.extras||[]) for(const i of x.items) if("X"+i.id===p.tag){ const f=(i.s==="Defect"||i.s==="OK")?lines(i.f)[0]:""; return {cat:cleanSec(x.name),text:f||(x.name+" - "+i.title)}; }
+  return {cat:"Photo",text:p.label||String(p.tag||"Photo").replace(/([a-z])([A-Z])/g,"$1 $2")}; }
+function photoCaption(J,p){ let t=String(p.caption||"").trim()||photoCtx(J,p).text;
+  if(t.length>CAP_MAX){ t=t.slice(0,CAP_MAX); t=t.slice(0,Math.max(t.lastIndexOf(" "),CAP_MAX-40))+"..."; } return t; }
+const camel=(t,n)=>String(t||"").replace(/(\d)[.,](\d)/g,"$1\u0001$2").split(/[^A-Za-z0-9\u0001]+/).filter(Boolean).map(w=>w[0].toUpperCase()+w.slice(1)).join("").slice(0,n).replace(/\u0001/g,".").replace(/\.+$/,"");
+function photoFileName(J,p,seq){ const c=photoCtx(J,p); const d=new Date(p.created||Date.now());
+  const ymd=String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+  const who=p.scope==="site"?"Site":"B"+clean((boilerOf2(J,p.scope)||{}).no||"");
+  return [camel(c.cat,28)||"Photo",camel(String(p.caption||"").trim()||c.text,48)||"Photo",who,clean(J.customer&&J.customer.name),ymd,String(seq).padStart(2,"0")].join("_")+".jpg"; }
+function photoOrder(J,photos){ // per boiler: nameplate, questionnaire order, additional equipment; site: fuels, then questionnaire order
   const rank={}; let n=0; const qs=J.qs||LIB;
-  J.boilers.forEach(b=>{ rank[b.id+"|Nameplate"]=n++; FUEL_PHOTOS.forEach(f=>rank[b.id+"|"+f[0]]=n++);
-    (qs.shared||[]).concat(qs[(FIRING[b.firing]||FIRING.burner).part]||[]).forEach(s=>s.items.forEach(it=>{ const k=b.id+"|"+it.t; if(!(k in rank)) rank[k]=n++; }));
+  J.boilers.forEach(b=>{ rank[b.id+"|Nameplate"]=n++;
+    setOfB(qs,b).forEach(sc=>sc.items.forEach(it=>{ const k=b.id+"|"+it.t; if(!(k in rank)) rank[k]=n++; }));
     (b.extras||[]).forEach(x=>x.items.forEach(i=>rank[b.id+"|X"+i.id]=n++)); });
-  (qs.site||[]).forEach(s=>s.items.forEach(it=>{ const k="site|"+it.t; if(!(k in rank)) rank[k]=n++; }));
+  (J.fuels||[]).forEach(f=>FUEL_PHOTOS.forEach(x=>rank["site|"+x[0]+"_"+f.id]=n++));
+  (qs.site||[]).forEach(sc=>sc.items.forEach(it=>{ const k="site|"+it.t; if(!(k in rank)) rank[k]=n++; }));
   return photos.slice().sort((a,b)=>((rank[a.scope+"|"+a.tag]??1e6)-(rank[b.scope+"|"+b.tag]??1e6))||((a.created||0)-(b.created||0))); }
 
-function boilerSentence(b){ const f=FIRING[b.firing]||FIRING.burner; const ft=(b.fuel&&b.fuel.type)||"";
+function boilerSentence(J,b){ const ft=boilerFuel(J,b);
   const fire=b.firing==="stoker"?"coal-fired chain grate stoker":b.firing==="biomass"?("biomass-fired"+(ft?` (${ft})`:"")):((ft?ft+"-fired":"oil / gas-fired")+" burner");
-  let s=`Boiler ${b.no||""} is a ${[b.make,b.model].filter(Boolean).join(" ")||"boiler"}`.replace(/ is a boiler$/," is a");
-  s+=` ${fire} boiler`;
+  let t=`Boiler ${b.no||""} is a ${[b.make,b.model].filter(Boolean).join(" ")||"boiler"}`.replace(/ is a boiler$/," is a");
+  t+=` ${fire} boiler`;
   const parts=[]; if(b.capacity) parts.push(`a rated capacity of ${b.capacity} kg/h`); if(b.pressure) parts.push(`a design pressure of ${b.pressure} bar(g)`);
-  if(parts.length) s+=" with "+parts.join(" and ");
-  if(b.year) s+=`, manufactured in ${b.year}`; if(b.serial) s+=` (serial no. ${b.serial})`; s+=".";
-  const xs=(b.extras||[]).map(x=>x.name).filter(Boolean); if(xs.length) s+=` The boiler is fitted with the following additional equipment: ${xs.join(", ")}.`;
-  return s; }
-function fuelRows(b){ const f=b.fuel||{}; const cat=(FIRING[b.firing]||FIRING.burner).fuel; const rows=[];
-  if(f.type) rows.push(["Fuel type",f.type]);
-  FUEL_FIELDS[cat].concat(FUEL_COMMON_END).forEach(([k,l])=>{ if(f[k]) rows.push([l,f[k]]); });
+  if(parts.length) t+=" with "+parts.join(" and ");
+  if(b.year) t+=`, manufactured in ${b.year}`; if(b.serial) t+=` (serial no. ${b.serial})`; t+=".";
+  const xs=(b.extras||[]).map(x=>x.name).filter(Boolean); if(xs.length) t+=` The boiler is fitted with the following additional equipment: ${xs.join(", ")}.`;
+  return t; }
+function fuelRows(f){ const rows=[]; if(f.type) rows.push(["Fuel type",f.type]);
+  (FUEL_FIELDS[f.cat]||[]).concat(FUEL_COMMON_END).forEach(([k,l])=>{ if(f[k]) rows.push([l,f[k]]); });
   return rows; }
 
 async function buildDocx(J,prog){
-  prog=prog||(()=>{}); const M=reportModel(J); const c=J.customer||{}; const prep=J.prepared||{};
+  prog=prog||(()=>{}); const c=J.customer||{}; const prep=J.prepared||{};
   const custLine=[c.name,c.site].filter(Boolean).join(" - ");
+  // ---- photos: each one is printed where it belongs (question, fuel, nameplate); leftovers go to a short chapter at the end ----
+  const media=[]; let fig=0, rid=0, did=900000000, done_n=0;
+  const allPh=photoOrder(J,(await photosOf(J.id)).filter(p=>p.include)); const total=allPh.length;
+  const phBy={}; allPh.forEach(p=>{ const k=p.scope+"|"+p.tag; (phBy[k]=phBy[k]||[]).push(p); });
+  const M=reportModel(J,new Set(Object.keys(phBy)));
+  const placed=new Set();
+  const mkCell=async(p,bw,bh)=>{ done_n++; prog(`Preparing photo ${done_n} of ${total}...`); placed.add(p);
+    let ph; try{ ph=await docPhoto(p.blob); }catch(e){ return {img:wRuns("[photo could not be read]"),cap:p.filename||""}; }
+    fig++; rid++; did++; const r="rIdJTPh"+rid; media.push({rid:r,name:`media/jtphoto${rid}.jpg`,bytes:ph.bytes});
+    let cx=bw, cy=Math.round(bw*ph.h/ph.w); if(cy>bh){ cy=bh; cx=Math.round(bh*ph.w/ph.h); }
+    await new Promise(r=>setTimeout(r,0));
+    return {img:wImage(r,cx,cy,did),cap:`Figure ${fig}: ${photoCaption(J,p)}`}; };
+  const photosAt=async keys=>{ const list=[]; keys.forEach(k=>(phBy[k]||[]).forEach(p=>{ if(!placed.has(p)&&!list.includes(p)) list.push(p); }));
+    if(!list.length) return ""; const cells=[]; for(const p of list) cells.push(await mkCell(p,BOX_W,INL_H));
+    return wPhotoGrid(cells,INL_ROW)+wP("",{after:60}); };
+  // one report entry (a section for one boiler, or a site section)
+  const writeEntry=async(e,scope)=>{ let h="";
+    e.data.forEach(d=>h+=wBullet(d));
+    if(e.inline){
+      if(e.table.length) h+=wTable([e.thead].concat(e.table),[4700,BODY_W-4700],{head:true});
+      if(e.find.length){ h+=wLabel("Findings"); e.find.forEach(f=>h+=wBullet(f)); }
+      if(e.recs.length){ h+=wLabel("Recommendations"); e.recs.forEach(r=>h+=wBullet(r)); }
+      h+=await photosAt(e.tags.map(t=>scope+"|"+t));
+    } else {
+      for(const k of e.blocks){ const ph=await photosAt([k.key]);
+        const rows=k.data.map(d=>["",d]).concat(k.find.map(f=>["Finding: ",f])).concat(k.recs.map(r=>["Recommendation: ",r]));
+        h+=wLabel(k.title,{keepNext:true});
+        rows.forEach(([l,t],i)=>{ const keep=!!ph; /* keep the whole block with its first row of photos */ h+=l?wBulletL(l,t,keep):wBullet(t,keep); });
+        h+=ph; }
+      if(e.good.length){ h+=wLabel("Found in good condition"); e.good.forEach(g=>h+=wBullet(g)); }
+    }
+    if(!h) h=wP(BP.no_issues);
+    return h; };
   let B="";
   // ---- executive summary ----
   B+=wP("EXECUTIVE SUMMARY",{style:"ExecTitle"});
@@ -791,42 +979,40 @@ async function buildDocx(J,prog){
   ["High","Medium"].forEach(p=>M.prio[p].forEach(e=>{ const key=e.section+"|"+e.text.toLowerCase(); if(seenT[key])return; seenT[key]=1;
     let t=themes.find(x=>x.s===e.section); if(!t){ t={s:e.section,items:[]}; themes.push(t); } t.items.push(e.text); }));
   if(themes.length){ B+=wP(BP.exec_recommend_lead); themes.forEach(t=>{ B+=wLabel(t.s+":"); t.items.forEach(x=>B+=wBullet(x)); }); }
-  else B+=wP(BP.exec_none);
+  else B+=wP(M.defects?BP.exec_listed:BP.exec_none);
   B+=wPageBreak();
   // ---- 1 objective, 2 scope ----
   B+=wH(1,"Objective")+wP(BP.objective);
   B+=wH(1,"Scope of Work");
   const req=(J.scope&&J.scope.requested||[]).filter(x=>x&&x.trim()); B+=req.length?req.map(wBullet).join(""):wP(BP.scope_default);
   // ---- 3 description ----
-  B+=wH(1,"Description of Boiler Plant"); J.boilers.forEach(b=>B+=wP(boilerSentence(b)));
+  B+=wH(1,"Description of Boiler Plant"); J.boilers.forEach(b=>B+=wP(boilerSentence(J,b)));
   if(!J.boilers.length) B+=wP("No boilers were recorded.");
   // ---- 4 fuel ----
-  const anyFuel=J.boilers.some(b=>fuelRows(b).length);
-  if(anyFuel){ B+=wH(1,"Fuel");
-    J.boilers.forEach(b=>{ const rows=fuelRows(b); B+=wH(2,`Boiler ${b.no}${b.fuel&&b.fuel.type?" - "+b.fuel.type:""}`,false);
-      B+=rows.length?wTable(rows,[3800,BODY_W-3800],{boldFirst:true}):wP("Fuel details were not recorded."); }); }
+  const fuelKeys=f=>FUEL_PHOTOS.map(x=>"site|"+x[0]+"_"+f.id);
+  const fuels=(J.fuels||[]).filter(f=>fuelRows(f).length||fuelKeys(f).some(k=>phBy[k]));
+  if(fuels.length){ B+=wH(1,"Fuel");
+    for(const f of fuels){ B+=wH(2,f.type||(FUEL_CAT_LABEL[f.cat]+" fuel"),false);
+      const users=J.boilers.filter(b=>fuelsOf(J,b).includes(f)&&(!b.fuelId||b.fuelId===f.id||!fuelsOf(J,b).some(x=>x.id===b.fuelId))).map(b=>"Boiler "+b.no);
+      if(users.length) B+=wP("Used by: "+users.join(", ")+".");
+      if(fuelRows(f).length) B+=wTable(fuelRows(f),[3800,BODY_W-3800],{boldFirst:true});
+      B+=await photosAt(fuelKeys(f)); } }
   // ---- 5 boiler inspection findings ----
   B+=wH(1,"Boiler Inspection Findings");
   if(!M.order.length) B+=wP("No boiler inspection findings were recorded.");
-  M.order.forEach(name=>{ B+=wH(2,name);
-    M.secs[name].forEach(e=>{ B+=wH(3,"Boiler "+e.boiler.no,false);
-      e.data.forEach(d=>B+=wBullet(d));
-      if(e.find.length){ B+=wLabel("Findings"); e.find.forEach(f=>B+=wBullet(f)); }
-      if(e.recs.length){ B+=wLabel("Recommendations"); e.recs.forEach(r=>B+=wBullet(r)); }
-      if(!e.data.length&&!e.find.length&&!e.recs.length) B+=wP(BP.no_issues); }); });
+  for(const name of M.order){ B+=wH(2,name);
+    for(const e of M.secs[name]){ B+=wH(3,"Boiler "+e.boiler.no,false); B+=await writeEntry(e,e.boiler.id); } }
   // ---- 6 site ----
   if(M.site.length){ B+=wH(1,"Site-Wide Findings and Recommendations");
-    M.site.forEach(e=>{ B+=wH(2,e.name);
-      if(e.find.length){ B+=wLabel("Findings"); e.find.forEach(f=>B+=wBullet(f)); }
-      if(e.recs.length){ B+=wLabel("Recommendations"); e.recs.forEach(r=>B+=wBullet(r)); }
-      if(!e.find.length&&!e.recs.length) B+=wP(BP.no_issues); }); }
+    for(const e of M.site){ B+=wH(2,e.name); B+=await writeEntry(e,"site"); } }
   // ---- 7 efficiency ----
   B+=wH(1,"Efficiency")+wP(BP.efficiency_text);
   const firings=[...new Set(J.boilers.map(b=>b.firing))].filter(f=>BP.efficiency_targets[f]);
   if(firings.length) B+=wTable([["Firing","Target flue gas O2"]].concat(firings.map(f=>BP.efficiency_targets[f])),[5600,BODY_W-5600],{boldFirst:false});
   // ---- 8 recommendations ----
   B+=wH(1,"Recommendations");
-  PRIO.forEach(p=>{ B+=wH(2,p+" Priority",false); const items=M.prio[p];
+  if(!PRIO.some(p=>M.prio[p].length)) B+=wP(BP.prio_none);
+  else PRIO.forEach(p=>{ B+=wH(2,p+" Priority",false); const items=M.prio[p];
     if(!items.length){ B+=wP("None."); return; }
     M.groups.forEach(g=>{ const its=items.filter(e=>e.group===g); if(!its.length) return; B+=wLabel(g); its.forEach(e=>B+=wBullet(e.text)); }); });
   // ---- 9 work done ----
@@ -834,29 +1020,22 @@ async function buildDocx(J,prog){
   const done=(J.scope&&J.scope.done||[]).filter(x=>x&&x.trim()); B+=done.length?done.map(wBullet).join(""):wP(BP.work_done_none);
   // ---- 10 appendix ----
   B+=wPageBreak()+wH(1,"Appendix A - Boiler Details");
-  J.boilers.forEach(b=>{ B+=wLabel("Boiler "+b.no);
-    const rows=[["Make",b.make],["Model",b.model],["Serial number",b.serial],["Capacity (kg/h)",b.capacity],["Design pressure (bar g)",b.pressure],["Year of manufacture",b.year],["Firing",(FIRING[b.firing]||FIRING.burner).label],["Fuel",b.fuel&&b.fuel.type]];
+  for(const b of J.boilers){ B+=wLabel("Boiler "+b.no);
+    const rows=[["Make",b.make],["Model",b.model],["Serial number",b.serial],["Capacity (kg/h)",b.capacity],["Design pressure (bar g)",b.pressure],["Year of manufacture",b.year],["Firing",(FIRING[b.firing]||FIRING.burner).label],["Fuel",boilerFuel(J,b)]];
     const xs=(b.extras||[]).map(x=>x.name).filter(Boolean); if(xs.length) rows.push(["Additional equipment",xs.join(", ")]);
-    B+=wTable(rows.map(r=>[r[0],r[1]||"-"]),[3800,BODY_W-3800],{boldFirst:true}); });
-  // ---- 11 photographs ----
-  const media=[]; let fig=0, rid=0, did=900000000;
-  const allPh=(await photosOf(J.id)).filter(p=>p.include);
-  if(allPh.length){
-    const ordered=photoOrder(J,allPh); const total=ordered.length;
-    const scopes=J.boilers.map(b=>b.id).concat(["site"]); const lab=s=>s==="site"?"Site":"Boiler "+(boilerOf2(J,s)||{}).no;
-    B+=wPageBreak()+wH(1,"Photographs"); let first=true, done_n=0;
-    for(const s of scopes){ const list=ordered.filter(p=>p.scope===s); if(!list.length) continue;
+    B+=wTable(rows.map(r=>[r[0],r[1]||"-"]),[3800,BODY_W-3800],{boldFirst:true});
+    B+=await photosAt([b.id+"|Nameplate"]); }
+  // ---- 11 other photographs (only photos that have no question / place in the report) ----
+  const restPh=allPh.filter(p=>!placed.has(p));
+  if(restPh.length){
+    const scopes=J.boilers.map(b=>b.id).concat(["site"]); const lab=x=>x==="site"?"Site":"Boiler "+(boilerOf2(J,x)||{}).no;
+    B+=wPageBreak()+wH(1,"Other Photographs"); let first=true;
+    for(const sc of scopes){ const list=restPh.filter(p=>p.scope===sc); if(!list.length) continue;
       if(!first) B+=wPageBreak(); first=false;
-      B+=wH(2,lab(s),false);
+      B+=wH(2,lab(sc),false);
       for(let i=0;i<list.length;i+=4){
-        if(i>0) B+=wPageBreak()+wLabel(lab(s)+" (continued)",{keepNext:true});
-        const cells=[];
-        for(const p of list.slice(i,i+4)){ done_n++; prog(`Preparing photo ${done_n} of ${total}...`);
-          let ph; try{ ph=await docPhoto(p.blob); }catch(e){ cells.push({img:wRuns("[photo could not be read]"),cap:p.filename||""}); continue; }
-          fig++; rid++; did++; const r="rIdJTPh"+rid; media.push({rid:r,name:`media/jtphoto${rid}.jpg`,bytes:ph.bytes});
-          let cx=BOX_W, cy=Math.round(BOX_W*ph.h/ph.w); if(cy>BOX_H){ cy=BOX_H; cx=Math.round(BOX_H*ph.w/ph.h); }
-          cells.push({img:wImage(r,cx,cy,did),cap:`Figure ${fig}: ${lab(s)} - ${p.caption||photoLabel(J,p)}`});
-          await new Promise(r=>setTimeout(r,0)); }
+        if(i>0) B+=wPageBreak()+wLabel(lab(sc)+" (continued)",{keepNext:true});
+        const cells=[]; for(const p of list.slice(i,i+4)) cells.push(await mkCell(p,BOX_W,BOX_H));
         B+=wPhotoGrid(cells); } } }
   prog("Assembling Word document...");
   // ---- fill the template skeleton ----
@@ -915,12 +1094,14 @@ async function unzip(buf){ const u8=new Uint8Array(buf), dv=new DataView(buf); l
 /* =====================================================================
    EXPORT / IMPORT JOB ZIP
    ===================================================================== */
-async function jobMeta(J,photos){ return {app:"JT Audit Capture "+APP_VER,schema:5,exported:new Date().toISOString(),
-  customer:J.customer,prepared:J.prepared,boilers:J.boilers,answers:J.answers,scope:J.scope,questionSets:J.qs||LIB,
-  photos:photos.map(p=>({file:"photos/"+p.filename,scope:p.scope,tag:p.tag,label:photoLabel(J,p),caption:p.caption||""}))}; }
+async function jobMeta(J,photos){ return {app:"JT Audit Capture "+APP_VER,schema:QS_VER,exported:new Date().toISOString(),
+  customer:J.customer,prepared:J.prepared,boilers:J.boilers,fuels:J.fuels||[],answers:J.answers,scope:J.scope,questionSets:J.qs||LIB,
+  photos:photos.map(p=>({file:"photos/"+p.filename,scope:p.scope,tag:p.tag,qid:p.qid||"",label:p.label||"",caption:p.caption||"",auto:photoCaption(J,p)}))}; }
 async function doExport(){ const st=$("expStatus"); st.textContent="Packing...";
   try{ const ph=photoOrder(job,(await photosOf(job.id)).filter(p=>p.include));
-    const used=new Set(); ph.forEach(p=>{ let f=p.filename||(p.id+".jpg"); while(used.has(f)) f=f.replace(/(\.jpg)?$/,"_"+p.id.slice(-3)+".jpg"); used.add(f); p.filename=f; });
+    // photos are renamed Category_Finding_... from the answers as they are now
+    const used=new Set(), seqs={}; ph.forEach(p=>{ const k=p.scope+"|"+p.tag; seqs[k]=(seqs[k]||0)+1; let f=photoFileName(job,p,seqs[k]);
+      while(used.has(f)) f=f.replace(/(\.jpg)?$/,"_"+p.id.slice(-3)+".jpg"); used.add(f); p.filename=f; });
     const meta=await jobMeta(job,ph); const files=[{name:"report_data.json",data:new TextEncoder().encode(JSON.stringify(meta,null,1))}];
     for(const p of ph) files.push({name:"photos/"+p.filename,data:new Uint8Array(await p.blob.arrayBuffer())});
     const name=`${yymmdd()}_${clean(job.customer.name)}_${clean(job.customer.reportNo)||"audit"}.zip`;
@@ -931,12 +1112,14 @@ zipFile.onchange=async e=>{ const f=e.target.files[0]; zipFile.value=""; if(!f)r
   try{ const z=await unzip(await f.arrayBuffer()); if(!z["report_data.json"]) throw new Error("report_data.json not found in this ZIP");
     const m=JSON.parse(new TextDecoder().decode(z["report_data.json"]));
     const J=fixJob({id:uid(),created:Date.now(),updated:Date.now(),imported:true,customer:m.customer||{},prepared:m.prepared,
-      boilers:m.boilers||[],answers:m.answers||{},scope:m.scope,qs:m.questionSets||null});
-    if(J.qs) PARTS.forEach(([p])=>{ J.qs[p]=J.qs[p]||[]; });
-    let n=0, t0=Date.now();
+      boilers:m.boilers||[],fuels:m.fuels||[],answers:m.answers||{},scope:m.scope,qs:m.questionSets||null,schema:(m.schema||5)>=QS_VER?QS_VER:5});
+    if(J.qs){ PARTS.forEach(([p])=>{ J.qs[p]=J.qs[p]||[]; }); if((m.schema||5)>=QS_VER) J.qs._v=J.qs._v||QS_VER; }
+    let n=0, t0=Date.now(); const recs=[];
     for(const p of (m.photos||[])){ const bytes=z[p.file]; if(!bytes) continue;
-      await put("photos",{id:uid(),jobId:J.id,scope:p.scope,tag:p.tag,label:p.label||"",include:true,caption:p.caption||"",
+      recs.push({id:uid()+n,jobId:J.id,scope:p.scope,tag:p.tag,qid:p.qid||"",label:p.label||"",include:true,caption:p.caption||"",
         filename:p.file.split("/").pop(),blob:new Blob([bytes],{type:"image/jpeg"}),created:t0+(n++)}); }
+    if(J.schema<QS_VER) upgradeJob(J,recs);
+    for(const r of recs) await put("photos",r);
     await put("jobs",J); alert(`Imported "${J.customer.name||"report"}" with ${n} photo(s).`); home();
   }catch(err){ alert("Import failed: "+(err&&err.message||err)); } };
 function importPick(){ zipFile.click(); }

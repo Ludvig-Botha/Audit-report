@@ -28,17 +28,17 @@ Do **not** open the file from the GitHub repo page — GitHub only shows the cod
 **Doing an audit**
 1. **+ New Report** → customer, report number, date, distribution list.
 2. **+ Add Boiler** → nameplate photo, details, and firing type: **Coal (stoker)**, **Oil / gas (burner)** or **Biomass**.
-3. **Questionnaire** for each boiler:
-   - **Fuel** — pick the fuel type from the list (or add a new one; it's remembered), fill in the analysis values, photograph the fuel and the analysis report.
-   - **Sections** — answer each question **OK / Defect / N/A / Skip**. Green ✔ / red ✘ shows what's done.
-     - **Defect** opens the finding, recommendation and priority.
-     - **OK** has an **Add comment / recommendation** button for remarks that aren't faults.
-     - Priority **High / Medium / Low** goes into the priority list at the end of the report; **N/A** keeps it out.
-   - **+ Add additional equipment** — for things not on every boiler (economiser, bag filter, …). Saved names come back with their checklist next time.
-4. **Site-Wide Questions** and **Scope of Work & Work Done**.
+3. **Questionnaire** for each boiler - answer each question **OK / Defect / N/A / Skip**. Green ✔ / red ✘ shows what's done.
+   - **OK** writes the comment for you ("Gauge glass is in a good condition."). Tap *Edit comment* to change it or add a recommendation.
+   - **Defect** opens the finding, recommendation and priority. Pick from the **suggestion drop-downs** or type your own - what you type is added to the drop-down for next time.
+   - Priority starts at **N/A**. Pick **High / Medium / Low** to put the item in the priority list at the end of the report.
+   - **Combustion Test** (burners): O2 at base load, 25 %, 50 %, 75 % and 100 % load. Photos taken here are printed with the results, not at the back.
+   - **+ Add additional equipment** - for things not on every boiler (economiser, bag filter, …).
+4. **Site-Wide Questions & Fuel** - the **fuel** (type, analysis, photos), fuel handling and ring main, water treatment, steam traps, insulation, operators. Then **Scope of Work & Work Done**.
 5. **Generate Report** → **Generate Word Report**. The `.docx` lands in Downloads; **Share report** sends it straight to email/WhatsApp. **Export ZIP** is still there for the laptop or for moving a job to another phone (**Import job (ZIP)** on the home screen).
 
-Every photo is also saved to Downloads as `yymmdd_Customer_B1_Equipment_01.jpg` as a backup.
+In the report each photo is printed directly under its question, captioned with the finding. Answer the question first, then take the photo:
+every photo is also saved to Downloads as `Category_Finding_B1_Customer_yymmdd_01.jpg` as a backup.
 
 ---
 
@@ -48,9 +48,8 @@ Real JT cover (logo + ACTOM banner, customer, report number, distribution,
 prepared by) → template disclaimer page → **Executive Summary** → 1 Objective →
 2 Scope of Work → 3 Description of Boiler Plant → 4 Fuel → 5 Boiler Inspection
 Findings (each section, each inspected boiler under it, incl. additional
-equipment) → 6 Site-Wide → 7 Efficiency (O2 targets) → 8 Recommendations
-(High / Medium / Low, grouped by boiler) → 9 Work Done → 10 Appendix A →
-11 Photographs (4 per page, grouped per boiler, captioned).
+equipment; each question with its finding, recommendation and **its own photos**) → 6 Site-Wide (incl. fuel handling) → 7 Efficiency (O2 targets) → 8 Recommendations
+(High / Medium / Low, grouped by boiler) → 9 Work Done → 10 Appendix A (nameplate photos) → 11 Other Photographs (only photos without a question).
 
 Header on every body page: logo, report number, customer, date. Footer: JOHN
 THOMPSON and **Page X of Y**.

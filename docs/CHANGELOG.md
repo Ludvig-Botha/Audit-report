@@ -1,5 +1,35 @@
 # Changelog
 
+## 5.3
+### Report
+- **Photos sit with their question.** Every question is its own block: question title, data (equipment / measured value), Finding, Recommendation, then that question's photos, 2 side by side (~6 cm). The block is kept together with its first row of photos.
+- OK answers with only the automatic "good condition" comment and no photo are listed together under **Found in good condition** at the end of each section.
+- Nameplate photos print in **Appendix A** under the boiler's details; fuel photos in the **Fuel** chapter; additional-equipment photos under their check; combustion test photos stay with the results table.
+- The Photographs chapter is gone. Only photos that belong to no question (rare) go to a short **Other Photographs** chapter at the end.
+- App and laptop generator produce identical reports.
+
+## 5.2
+### App
+- **Fuel is site-wide.** The fuel form (type, analysis, photos) and all fuel-handling questions moved out of the boilers into *Site-Wide Questions & Fuel*: HFO handling, **ring main**, oil-line heat tracing, coal fuel analysis records, biomass fuel storage and moisture. Fuel sections only show when the site has that kind of boiler. A site can have more than one fuel.
+- **All priorities start at N/A.** A defect only goes into the High / Medium / Low list when the engineer picks a priority. The Generate screen warns how many defects are still N/A.
+- **OK writes the comment.** Tapping OK fills in "<item> is in a good condition." (e.g. "Gauge glass is in a good condition.", "Crown valve is in a good condition."). Editable; removed again if the answer is changed to Defect.
+- **Suggestion drop-downs.** Every question has a drop-down of suggested findings and one of suggested recommendations. Anything typed by hand is added to that question's list automatically (also for additional equipment). Lists are edited under *Questions & lists*.
+- **Photo captions = the finding** of the question the photo belongs to (a typed caption still wins).
+- **Photo file names** start with the category, then the finding: `BoilerWaterLevel_GaugeGlassIsInAGoodCondition_B1_Customer_yymmdd_01.jpg`. Names are refreshed from the current answers in the ZIP export.
+- **Combustion test** is its own burner section with five readings: base load, 25 %, 50 %, 75 %, 100 % load.
+- Renamed: *Minimum air pressure switch* -> **Secondary air pressure switch**; *Primary air differential pressure switch* -> **Primary air pressure switch**.
+- Several findings / recommendations on separate lines become separate bullets.
+
+### Report
+- Combustion test: results table per boiler with **its photos directly under it**, not in the Photographs chapter.
+- Fuel chapter is per fuel ("Used by: Boiler 1, 2").
+- Site-wide sections print their data values.
+- Executive summary and Recommendations no longer say "no deficiencies / None" when defects exist but none were prioritised.
+
+### Upgrading
+- Phones update themselves. Edited question libraries, reports in progress and ZIPs from older versions are converted automatically (answers and photos of moved questions go to Site-Wide; a boiler's fuel becomes a site fuel).
+- Laptop generator mirrors all of the above and still reads older ZIPs.
+
 ## 5.1
 - Hosted on GitHub Pages: the repo link opens the app (root `index.html`), installs to the home screen and **works offline** after the first open (`app/manifest.json`, `app/sw.js`, icons).
 - New versions are picked up automatically when opened with signal.
